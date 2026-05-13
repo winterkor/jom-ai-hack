@@ -96,10 +96,17 @@
 }
 
 .hdr__dot {
-  color: var(--status-available);
   font-size: 10px;
   margin: 0 4px;
   animation: pulse 1.6s var(--ease-in-out) infinite;
+  color: var(--status-available);
+}
+
+.hdr__dot[data-c="amber"] {
+  color: var(--status-filling);
+}
+.hdr__dot[data-c="red"] {
+  color: var(--status-full);
 }
 
 @keyframes pulse {

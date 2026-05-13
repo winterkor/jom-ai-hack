@@ -1,10 +1,17 @@
 import "./Header.css";
 
-export default function Header({ racksOnline, availableSlots }) {
+const STATE_LABEL = {
+  loading: { text: "SYNCING", color: "amber" },
+  live: { text: "LIVE · LTA", color: "green" },
+  mock: { text: "OFFLINE · MOCK", color: "red" },
+};
+
+export default function Header({ racksOnline, availableSlots, dataState = "live" }) {
   const now = new Date();
   const stamp = `${String(now.getHours()).padStart(2, "0")}:${String(
     now.getMinutes()
   ).padStart(2, "0")} SGT`;
+  const state = STATE_LABEL[dataState] || STATE_LABEL.live;
 
   return (
     <header className="hdr">
@@ -20,7 +27,11 @@ export default function Header({ racksOnline, availableSlots }) {
           <div className="hdr__lines">
             <div className="hdr__title">PARK·NET</div>
             <div className="hdr__sub">
-              TAMPINES BICYCLE NETWORK <span className="hdr__dot">●</span> LIVE
+              TAMPINES BICYCLE NETWORK{" "}
+              <span className="hdr__dot" data-c={state.color}>
+                ●
+              </span>{" "}
+              {state.text}
             </div>
           </div>
         </div>

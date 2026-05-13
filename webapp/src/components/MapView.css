@@ -136,3 +136,90 @@
   border-right: 2px solid var(--ink);
   border-bottom: 2px solid var(--ink);
 }
+
+/* ── CLUSTERS (brutalist hexagonal-feel badge with count) ── */
+.rack-cluster-wrap {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Suppress default leaflet.markercluster styles — we draw our own */
+.marker-cluster,
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large,
+.marker-cluster div {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.marker-cluster span {
+  display: none !important;
+}
+
+.rack-cluster {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+  animation: marker-pop 420ms var(--ease-out) both;
+}
+
+.rack-cluster:hover {
+  transform: scale(1.08) translateY(-3px);
+  box-shadow: 5px 6px 0 var(--ink);
+}
+
+.rack-cluster__stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  border-bottom: 2px solid var(--ink);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  pointer-events: none;
+}
+
+.rack-cluster[data-status="available"] .rack-cluster__stripe {
+  background: var(--status-available);
+}
+.rack-cluster[data-status="filling"] .rack-cluster__stripe {
+  background: var(--status-filling);
+}
+.rack-cluster[data-status="full"] .rack-cluster__stripe {
+  background: var(--status-full);
+}
+
+.rack-cluster__count {
+  pointer-events: none;
+  font-family: var(--font-numeric);
+  font-weight: 900;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--ink);
+  margin-top: 8px;
+}
+
+.rack-cluster__free {
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--ink-mute);
+  margin-top: 1px;
+}

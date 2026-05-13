@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  server: {
+    proxy: {
+      // LTA DataMall doesn't set CORS headers for browser calls,
+      // so we proxy through the Vite dev server.
+      "/lta": {
+        target: "https://datamall2.mytransport.sg",
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/lta/, "/ltaodataservice"),
+      },
+    },
+  },
+});
