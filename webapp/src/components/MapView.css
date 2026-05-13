@@ -223,3 +223,67 @@
   color: var(--ink-mute);
   margin-top: 1px;
 }
+
+/* ── USER "YOU ARE HERE" MARKER ─────────────────────── */
+.user-marker-wrap {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+}
+
+.user-marker {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-marker__dot {
+  width: 18px;
+  height: 18px;
+  background: var(--hazard);
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 2px 2px 0 var(--ink);
+  z-index: 2;
+}
+
+.user-marker__pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+  margin-left: -9px;
+  background: var(--hazard);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  opacity: 0.6;
+  animation: user-pulse 1.6s var(--ease-out) infinite;
+  z-index: 1;
+}
+
+@keyframes user-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* ── ROUTE LINE ANIMATION ──────────────────────────── */
+.route-line {
+  animation: route-dash 1s linear infinite;
+}
+
+@keyframes route-dash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}

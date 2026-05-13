@@ -1,6 +1,6 @@
 .legend {
   position: absolute;
-  bottom: 16px;
+  bottom: 24px;
   left: 16px;
   z-index: 500;
   background: var(--card);

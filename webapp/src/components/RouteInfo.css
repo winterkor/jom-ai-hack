@@ -1,0 +1,112 @@
+.routeinfo {
+  position: absolute;
+  bottom: 96px;
+  right: 24px;
+  z-index: 620;
+  background: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  min-width: 260px;
+  animation: routeinfo-in 280ms var(--ease-out) both;
+}
+
+@keyframes routeinfo-in {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.routeinfo__band {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--hazard);
+  border-bottom: 2px solid var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--ink);
+}
+
+.routeinfo__dot {
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  border-radius: 50%;
+  animation: pulse 1.6s infinite;
+}
+
+.routeinfo__body {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.routeinfo__col {
+  flex: 1;
+  padding: 10px 14px;
+  border-right: 1px dashed var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.routeinfo__col:last-of-type {
+  border-right: none;
+}
+
+.routeinfo__lbl {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--ink-mute);
+}
+
+.routeinfo__val {
+  font-family: var(--font-numeric);
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 0.95;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+
+.routeinfo__cancel {
+  width: 36px;
+  background: var(--card);
+  border: none;
+  border-left: 2px solid var(--ink);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+
+.routeinfo__cancel:hover {
+  background: var(--status-full);
+  color: var(--card);
+}
+
+.routeinfo__target {
+  padding: 8px 12px;
+  border-top: 1px dashed var(--ink);
+  background: var(--paper-deep);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,133 @@
+.fab {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 600;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  animation: fab-in 600ms 400ms var(--ease-out) both;
+}
+
+@keyframes fab-in {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.fab__btn {
+  font-family: var(--font-display);
+  background: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background var(--dur-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab__btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.fab__btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-press);
+}
+
+.fab__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Locate icon button (square) ── */
+.fab__btn--locate {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+}
+
+.fab__btn--locate:hover {
+  background: var(--hazard);
+}
+
+.fab__icon {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* ── Primary "Find Nearest" button ── */
+.fab__btn--primary {
+  background: var(--ink);
+  color: var(--card);
+  padding: 0 18px;
+  gap: 12px;
+  height: 54px;
+  min-width: 220px;
+}
+
+.fab__btn--primary:hover {
+  background: var(--status-available);
+}
+
+.fab__btn--primary:hover .fab__arrow {
+  transform: translateX(4px);
+}
+
+.fab__txt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  text-align: left;
+}
+
+.fab__lbl {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+.fab__sub {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  opacity: 0.7;
+}
+
+.fab__arrow {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 1;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+@media (max-width: 720px) {
+  .fab {
+    bottom: 16px;
+    right: 16px;
+  }
+  .fab__btn--primary {
+    min-width: auto;
+    padding: 0 14px;
+  }
+  .fab__sub {
+    display: none;
+  }
+}

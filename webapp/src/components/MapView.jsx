@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -42,8 +42,6 @@ function buildClusterIcon(cluster) {
     totalAvail += getAvailableSlots(rack);
     statusCounts[getRackStatus(rack)] += 1;
   }
-
-  // Dominant cluster status: whichever status has the most racks
   const dominant = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
 
   return L.divIcon({
@@ -60,8 +58,14 @@ function buildClusterIcon(cluster) {
   });
 }
 
-// Inner component: builds the markercluster group manually so we can style clusters
-// to match the wayfinding aesthetic.
+const userIcon = L.divIcon({
+  className: "user-marker-wrap",
+  iconSize: [42, 42],
+  iconAnchor: [21, 21],
+  html: `<div class="user-marker"><div class="user-marker__pulse"></div><div class="user-marker__dot"></div></div>`,
+});
+
+// Render the rack cluster group manually
 function RackLayer({ racks, selectedRack, onSelectRack }) {
   const map = useMap();
   const clusterRef = useRef(null);
@@ -98,7 +102,51 @@ function RackLayer({ racks, selectedRack, onSelectRack }) {
   return null;
 }
 
-export default function MapView({ racks, selectedRack, onSelectRack }) {
+// Render the user "you are here" marker
+function UserMarker({ userPos }) {
+  const map = useMap();
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!userPos) return;
+    const marker = L.marker([userPos.lat, userPos.lng], {
+      icon: userIcon,
+      zIndexOffset: 1500,
+      interactive: false,
+    });
+    marker.addTo(map);
+    ref.current = marker;
+    return () => {
+      map.removeLayer(marker);
+      ref.current = null;
+    };
+  }, [userPos?.lat, userPos?.lng, map]);
+
+  return null;
+}
+
+// Imperative fly-to controller — listens to `flyTo` prop changes
+function FlyTo({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    if (target.bounds) {
+      map.flyToBounds(target.bounds, { padding: [80, 80], duration: 1.0 });
+    } else if (target.lat != null && target.lng != null) {
+      map.flyTo([target.lat, target.lng], target.zoom ?? 16, { duration: 1.0 });
+    }
+  }, [target?.key, map, target]);
+  return null;
+}
+
+export default function MapView({
+  racks,
+  selectedRack,
+  onSelectRack,
+  userPos,
+  route,
+  flyTo,
+}) {
   return (
     <div className="mapview">
       <MapContainer
@@ -118,6 +166,43 @@ export default function MapView({ racks, selectedRack, onSelectRack }) {
           selectedRack={selectedRack}
           onSelectRack={onSelectRack}
         />
+
+        <UserMarker userPos={userPos} />
+
+        {route && (
+          <>
+            {/* Outer black "shadow" line for that brutalist contrast */}
+            <Polyline
+              positions={[
+                [route.origin.lat, route.origin.lng],
+                [route.target.lat, route.target.lng],
+              ]}
+              pathOptions={{
+                color: "#14110F",
+                weight: 8,
+                opacity: 1,
+                lineCap: "square",
+              }}
+            />
+            {/* Inner hazard-yellow dashed line */}
+            <Polyline
+              positions={[
+                [route.origin.lat, route.origin.lng],
+                [route.target.lat, route.target.lng],
+              ]}
+              pathOptions={{
+                color: "#FFD93D",
+                weight: 4,
+                opacity: 1,
+                dashArray: "10 8",
+                lineCap: "square",
+              }}
+              className="route-line"
+            />
+          </>
+        )}
+
+        <FlyTo target={flyTo} />
       </MapContainer>
     </div>
   );
