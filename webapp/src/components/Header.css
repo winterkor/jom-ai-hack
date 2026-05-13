@@ -1,0 +1,187 @@
+.hdr {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 600;
+  background: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  min-width: 480px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  animation: hdr-in 600ms var(--ease-out) both;
+}
+
+@keyframes hdr-in {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* MRT-line color stripe — three coloured blocks running the top */
+.hdr__stripe {
+  display: flex;
+  height: 8px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.hdr__stripe-block {
+  flex: 1;
+}
+.hdr__stripe-block[data-c="green"] {
+  background: var(--status-available);
+}
+.hdr__stripe-block[data-c="amber"] {
+  background: var(--status-filling);
+}
+.hdr__stripe-block[data-c="red"] {
+  background: var(--status-full);
+}
+
+.hdr__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.hdr__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-right: 2px solid var(--ink);
+  background: var(--card);
+}
+
+.hdr__mark {
+  font-family: var(--font-numeric);
+  font-weight: 900;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--ink);
+  background: var(--hazard);
+  border: 2px solid var(--ink);
+  padding: 6px 10px 4px;
+  box-shadow: var(--shadow-flat-sm);
+}
+
+.hdr__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hdr__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.hdr__sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+}
+
+.hdr__dot {
+  color: var(--status-available);
+  font-size: 10px;
+  margin: 0 4px;
+  animation: pulse 1.6s var(--ease-in-out) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hdr__stats {
+  display: flex;
+  align-items: stretch;
+}
+
+.stat {
+  padding: 14px 16px;
+  border-right: 1px solid var(--ink);
+  background: var(--card);
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.stat:last-child {
+  border-right: none;
+}
+
+.stat--hi {
+  background: var(--status-available);
+}
+
+.stat--hi .stat__label,
+.stat--hi .stat__value {
+  color: var(--card);
+}
+
+.stat__label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--ink-mute);
+  text-transform: uppercase;
+}
+
+.stat__value {
+  font-family: var(--font-numeric);
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 0.95;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+
+.stat__value--mono {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+/* Diagonal hazard stripe along the bottom edge — construction signage tribute */
+.hdr__hazard {
+  height: 6px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--hazard) 0 10px,
+    var(--ink) 10px 14px
+  );
+  border-top: 2px solid var(--ink);
+}
+
+@media (max-width: 720px) {
+  .hdr {
+    min-width: auto;
+    width: calc(100vw - 32px);
+  }
+  .hdr__stats {
+    flex-wrap: wrap;
+  }
+  .stat {
+    min-width: 33%;
+    flex: 1;
+  }
+}

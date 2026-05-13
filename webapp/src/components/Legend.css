@@ -1,0 +1,124 @@
+.legend {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 500;
+  background: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  width: 220px;
+  animation: legend-in 600ms 800ms var(--ease-out) both;
+}
+
+@keyframes legend-in {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.legend__head {
+  padding: 10px 14px 8px;
+  background: var(--ink);
+  color: var(--card);
+}
+
+.legend__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.legend__sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  color: var(--paper-deep);
+  margin-top: 3px;
+}
+
+.legend__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px dashed var(--ink);
+}
+
+.legend__row:last-child {
+  border-bottom: none;
+}
+
+.legend__chip {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--ink);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.legend__chip::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--card);
+}
+
+.legend__chip[data-status="available"] {
+  background: var(--status-available-soft);
+}
+.legend__chip[data-status="available"]::after {
+  background: var(--status-available);
+}
+
+.legend__chip[data-status="filling"] {
+  background: var(--status-filling-soft);
+}
+.legend__chip[data-status="filling"]::after {
+  background: var(--status-filling);
+}
+
+.legend__chip[data-status="full"] {
+  background: var(--status-full-soft);
+}
+.legend__chip[data-status="full"]::after {
+  background: var(--status-full);
+}
+
+.legend__txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.legend__label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: var(--ink);
+}
+
+.legend__desc {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--ink-mute);
+  letter-spacing: 0.5px;
+}

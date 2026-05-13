@@ -1,0 +1,96 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Big+Shoulders+Display:wght@700;800;900&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap");
+@import "leaflet/dist/leaflet.css";
+@import "./styles/tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--step-1);
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ── LEAFLET OVERRIDES — match the paper aesthetic ── */
+.leaflet-container {
+  background: var(--paper);
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.leaflet-control-attribution {
+  background: var(--card) !important;
+  border: var(--border-w) solid var(--ink) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  color: var(--ink-soft) !important;
+  box-shadow: var(--shadow-flat-sm);
+}
+
+.leaflet-control-attribution a {
+  color: var(--ink) !important;
+}
+
+.leaflet-control-zoom {
+  border: var(--border-w) solid var(--ink) !important;
+  border-radius: 0 !important;
+  box-shadow: var(--shadow-flat-sm) !important;
+  overflow: hidden;
+  margin: 16px !important;
+}
+
+.leaflet-control-zoom a {
+  background: var(--card) !important;
+  color: var(--ink) !important;
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--ink) !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 20px !important;
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: var(--hazard) !important;
+}
+
+/* Desaturate OSM tiles slightly so our markers dominate */
+.leaflet-tile-pane {
+  filter: grayscale(0.4) sepia(0.12) brightness(1.03) contrast(0.94);
+}
+
+.leaflet-popup,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  display: none;
+}
