@@ -25,21 +25,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: webapp/package-lock.json
 
-      - name: Install dependencies
-        working-directory: webapp
-        run: npm ci
-
-      - name: Build
-        working-directory: webapp
-        run: npm run build
-
+      # Enable Pages automatically (no manual Settings toggle needed)
       - name: Setup Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
+      # npm ci is strict about lockfile sync; fall back so a stale or
+      # missing lockfile can't break the preview build.
+      - name: Install dependencies
+        working-directory: webapp
+        run: npm ci || npm install
+
+      - name: Build
+        working-directory: webapp
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
