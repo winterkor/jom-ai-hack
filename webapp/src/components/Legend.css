@@ -22,9 +22,25 @@
 }
 
 .legend__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
   padding: 10px 14px 8px;
   background: var(--ink);
   color: var(--card);
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.legend__caret {
+  display: none;
+  font-size: 12px;
+  line-height: 1;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
 .legend__title {
@@ -121,4 +137,30 @@
   font-size: 9px;
   color: var(--ink-mute);
   letter-spacing: 0.5px;
+}
+
+@media (max-width: 720px) {
+  .legend {
+    bottom: calc(16px + var(--safe-b));
+    left: calc(8px + var(--safe-l));
+    width: auto;
+    max-width: 200px;
+  }
+
+  .legend__caret {
+    display: block;
+  }
+
+  .legend--open .legend__caret {
+    transform: rotate(180deg);
+  }
+
+  /* Collapsed by default — tap the header to reveal the key */
+  .legend__rows {
+    display: none;
+  }
+
+  .legend--open .legend__rows {
+    display: block;
+  }
 }

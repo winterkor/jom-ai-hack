@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./Legend.css";
 
 const ROWS = [
@@ -7,12 +8,25 @@ const ROWS = [
 ];
 
 export default function Legend() {
+  // Collapsed by default on phones; CSS keeps it always-open on desktop.
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="legend">
-      <div className="legend__head">
-        <div className="legend__title">STATUS KEY</div>
-        <div className="legend__sub">RACK AVAILABILITY</div>
-      </div>
+    <div className={`legend ${open ? "legend--open" : ""}`}>
+      <button
+        type="button"
+        className="legend__head"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <div className="legend__titles">
+          <div className="legend__title">STATUS KEY</div>
+          <div className="legend__sub">RACK AVAILABILITY</div>
+        </div>
+        <span className="legend__caret" aria-hidden="true">
+          ▾
+        </span>
+      </button>
       <ul className="legend__rows">
         {ROWS.map((r) => (
           <li key={r.status} className="legend__row">

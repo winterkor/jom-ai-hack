@@ -5,6 +5,12 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Bind 0.0.0.0 so the dev server is reachable from a phone via the
+    // Cloudflare quick tunnel (and over LAN), not just localhost.
+    host: true,
+    // Vite blocks requests whose Host header it doesn't recognize. The
+    // tunnel forwards a *.trycloudflare.com host, so allow that suffix.
+    allowedHosts: [".trycloudflare.com"],
     proxy: {
       // LTA DataMall doesn't set CORS headers for browser calls,
       // so we proxy through the Vite dev server.

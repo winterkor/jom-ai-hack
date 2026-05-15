@@ -24,6 +24,11 @@
   pointer-events: auto;
 }
 
+/* ── DRAG HANDLE (mobile bottom-sheet only) ────── */
+.panel__handle {
+  display: none;
+}
+
 /* ── CLOSE ─────────────────────────────────────── */
 .panel__close {
   position: absolute;
@@ -287,13 +292,71 @@
 }
 
 @media (max-width: 720px) {
+  /* Full-width bottom sheet that rises from the bottom edge */
   .panel {
     top: auto;
-    bottom: 80px;
-    left: 16px;
-    right: 16px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: auto;
-    max-height: 70vh;
+    max-width: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: var(--border-w) solid var(--ink);
+    box-shadow: 0 -6px 0 var(--ink);
+    transform: translateY(110%);
+    transition: transform var(--dur) var(--ease-out);
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: var(--safe-b);
+  }
+
+  .panel--open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Two detents — tap or drag the handle to switch */
+  .panel[data-sheet="peek"] {
+    height: min(46dvh, 360px);
+  }
+  .panel[data-sheet="full"] {
+    height: 88dvh;
+  }
+
+  /* No transition while the finger is down — follow it 1:1 */
+  .panel--dragging {
+    transition: none;
+  }
+
+  .panel__handle {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    background: var(--card);
+    border-bottom: 1px dashed var(--ink);
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .panel__grip {
+    width: 46px;
+    height: 5px;
+    background: var(--ink);
+    border-radius: 3px;
+  }
+
+  .panel__close {
+    width: 40px;
+    height: 40px;
+    top: 6px;
+    right: 8px;
+    z-index: 4;
   }
 }

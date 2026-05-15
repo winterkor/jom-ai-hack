@@ -120,8 +120,8 @@
 
 @media (max-width: 720px) {
   .fab {
-    bottom: 16px;
-    right: 16px;
+    bottom: calc(16px + var(--safe-b));
+    right: calc(16px + var(--safe-r));
   }
   .fab__btn--primary {
     min-width: auto;

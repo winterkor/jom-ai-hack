@@ -169,15 +169,23 @@
 }
 
 @media (max-width: 720px) {
+  /* Dock under the compact header, full width, dropdown opens downward */
   .search {
-    top: auto;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
+    top: calc(84px + var(--safe-t));
+    left: calc(8px + var(--safe-l));
+    right: calc(8px + var(--safe-r));
     width: auto;
   }
 
+  .search__row {
+    height: 52px;
+  }
+
+  .search__clear {
+    width: 48px;
+  }
+
   .search__list {
-    max-height: 200px;
+    max-height: 46vh;
   }
 }

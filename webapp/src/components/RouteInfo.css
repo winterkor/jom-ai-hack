@@ -110,3 +110,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+@media (max-width: 720px) {
+  /* Pinned below the search bar so it never fights the FAB or sheet */
+  .routeinfo {
+    top: calc(146px + var(--safe-t));
+    left: calc(8px + var(--safe-l));
+    right: calc(8px + var(--safe-r));
+    bottom: auto;
+    min-width: 0;
+  }
+
+  .routeinfo__cancel {
+    width: 48px;
+  }
+}

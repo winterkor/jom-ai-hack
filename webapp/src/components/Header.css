@@ -182,13 +182,50 @@
 @media (max-width: 720px) {
   .hdr {
     min-width: auto;
-    width: calc(100vw - 32px);
+    top: calc(8px + var(--safe-t));
+    left: calc(8px + var(--safe-l));
+    width: auto;
+    right: calc(8px + var(--safe-r));
   }
+
+  /* Trim the brand block so the map gets its screen back */
+  .hdr__brand {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+  .hdr__mark {
+    font-size: 26px;
+    padding: 4px 7px 3px;
+  }
+  .hdr__title {
+    font-size: 16px;
+  }
+  .hdr__sub {
+    font-size: 8px;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 42vw;
+  }
+
   .hdr__stats {
-    flex-wrap: wrap;
+    flex: 1;
   }
   .stat {
-    min-width: 33%;
+    min-width: 0;
     flex: 1;
+    padding: 8px 10px;
+  }
+  /* Local-time stat is the least useful on a phone — reclaim the width */
+  .stat:last-child {
+    display: none;
+  }
+  .stat__value {
+    font-size: 20px;
+  }
+  .stat__label {
+    font-size: 8px;
+    letter-spacing: 0.8px;
   }
 }
