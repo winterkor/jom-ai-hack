@@ -2,7 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Project Pages serve from /<repo>/, so the build needs that base path.
+  // The dev server still runs at root.
+  base: command === "build" ? "/jom-ai-hack/" : "/",
   plugins: [react()],
   server: {
     // Bind 0.0.0.0 so the dev server is reachable from a phone via the
@@ -22,4 +25,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
