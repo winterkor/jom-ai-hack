@@ -141,6 +141,7 @@ export function adaptLtaRack(ltaRack, index, now = new Date()) {
 }
 
 export function getRackStatus(rack) {
+  if (rack.offline) return "offline";
   const ratio = rack.occupiedSlots / rack.totalSlots;
   if (ratio >= 0.9) return "full";
   if (ratio >= 0.6) return "filling";

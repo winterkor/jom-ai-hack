@@ -62,7 +62,7 @@
 }
 
 .search__clear {
-  width: 38px;
+  width: 44px;
   background: var(--card);
   border: none;
   border-left: 1px dashed var(--ink);
@@ -169,15 +169,25 @@
 }
 
 @media (max-width: 720px) {
+  /* Float clear of the brutalist header. On phone the header collapses to
+     ~71px tall at top:16px (bottom ≈ 87px); 100px leaves an ~13px gap. */
   .search {
-    top: auto;
-    bottom: 16px;
+    top: 100px;
     left: 16px;
     right: 16px;
     width: auto;
+    bottom: auto;
   }
 
   .search__list {
-    max-height: 200px;
+    max-height: 220px;
+  }
+
+  .search__item {
+    padding: 13px 12px;
+  }
+
+  .search__row {
+    height: 54px;
   }
 }

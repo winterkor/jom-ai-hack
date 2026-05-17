@@ -6,7 +6,13 @@ const STATE_LABEL = {
   mock: { text: "OFFLINE · MOCK", color: "red" },
 };
 
-export default function Header({ racksOnline, availableSlots, dataState = "live" }) {
+// Full brutalist station-board on desktop, progressively collapses to a
+// compact identity bar on phones. One component, CSS-driven via Header.css.
+export default function Header({
+  racksOnline,
+  availableSlots,
+  dataState = "live",
+}) {
   const now = new Date();
   const stamp = `${String(now.getHours()).padStart(2, "0")}:${String(
     now.getMinutes()
@@ -27,7 +33,7 @@ export default function Header({ racksOnline, availableSlots, dataState = "live"
           <div className="hdr__lines">
             <div className="hdr__title">PARK·NET</div>
             <div className="hdr__sub">
-              TAMPINES BICYCLE NETWORK{" "}
+              <span className="hdr__net">TAMPINES BICYCLE NETWORK </span>
               <span className="hdr__dot" data-c={state.color}>
                 ●
               </span>{" "}
@@ -37,9 +43,14 @@ export default function Header({ racksOnline, availableSlots, dataState = "live"
         </div>
 
         <div className="hdr__stats">
-          <Stat label="RACKS ONLINE" value={racksOnline} />
+          <Stat label="RACKS" value={racksOnline} className="stat--racks" />
           <Stat label="SLOTS FREE" value={availableSlots} highlight />
-          <Stat label="LOCAL TIME" value={stamp} mono />
+          <Stat
+            label="LOCAL TIME"
+            value={stamp}
+            mono
+            className="stat--time"
+          />
         </div>
       </div>
 
@@ -48,9 +59,9 @@ export default function Header({ racksOnline, availableSlots, dataState = "live"
   );
 }
 
-function Stat({ label, value, highlight, mono }) {
+function Stat({ label, value, highlight, mono, className = "" }) {
   return (
-    <div className={`stat ${highlight ? "stat--hi" : ""}`}>
+    <div className={`stat ${highlight ? "stat--hi" : ""} ${className}`}>
       <div className="stat__label">{label}</div>
       <div className={`stat__value ${mono ? "stat__value--mono" : ""}`}>
         {value}

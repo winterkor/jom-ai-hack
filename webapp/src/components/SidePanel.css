@@ -1,3 +1,4 @@
+/* ── PANEL SHELL ────────────────────────────────── */
 .panel {
   position: absolute;
   top: 200px;
@@ -24,10 +25,38 @@
   pointer-events: auto;
 }
 
+/* ── GRABBER HANDLE (tap to expand/collapse) ──────── */
+.panel__handle {
+  appearance: none;
+  border: none;
+  background: var(--card);
+  border-bottom: 2px solid var(--ink);
+  width: 100%;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.panel__grip {
+  width: 46px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--ink);
+  opacity: 0.35;
+  transition: opacity var(--dur-fast);
+}
+
+.panel__handle:hover .panel__grip {
+  opacity: 0.7;
+}
+
 /* ── CLOSE ─────────────────────────────────────── */
 .panel__close {
   position: absolute;
-  top: 8px;
+  top: 28px;
   right: 8px;
   width: 30px;
   height: 30px;
@@ -71,6 +100,10 @@
 .panel__band[data-status="full"] {
   background: var(--status-full);
 }
+.panel__band[data-status="offline"] {
+  background: var(--status-offline);
+  color: var(--ink);
+}
 
 .panel__band-dot {
   width: 8px;
@@ -80,12 +113,155 @@
   animation: pulse 1.6s infinite;
 }
 
-/* ── HERO ─────────────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* ── PEEK (always visible) ────────────────────────── */
+.panel__peek {
+  appearance: none;
+  border: none;
+  background: var(--card);
+  border-bottom: 1px dashed var(--ink);
+  width: 100%;
+  text-align: left;
+  padding: 14px 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.panel__peek:hover {
+  background: var(--paper-deep);
+}
+
+.panel__id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: var(--ink-mute);
+}
+
+.panel__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 21px;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.panel__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.panel__dist {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--ink-soft);
+}
+
+.panel__free {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 8px 2px;
+  border: 1.5px solid var(--ink);
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+.panel__free[data-status="available"] {
+  background: var(--status-available-soft);
+}
+.panel__free[data-status="filling"] {
+  background: var(--status-filling-soft);
+}
+.panel__free[data-status="full"] {
+  background: var(--status-full-soft);
+}
+.panel__free[data-status="offline"] {
+  background: var(--status-offline-soft);
+}
+
+/* ── START NAVIGATION CTA (placeholder until Ship 2b) ── */
+.panel__nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 18px;
+  border: none;
+  background: var(--ink);
+  color: var(--card);
+  font-family: var(--font-display);
+  text-align: left;
+  cursor: not-allowed;
+}
+
+.panel__nav-arrow {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--hazard);
+}
+
+.panel__nav-main {
+  flex: 1;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.4px;
+}
+
+.panel__nav-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--ink);
+  background: var(--hazard);
+  padding: 4px 7px 3px;
+  border-radius: 2px;
+}
+
+/* ── EXPANDED (revealed on tap) ──────────────────── */
+.panel__expand {
+  display: none;
+  border-top: 2px solid var(--ink);
+}
+
+.panel[data-expanded="true"] .panel__expand {
+  display: block;
+}
+
+/* Expanded grows to a MEDIUM height and scrolls inside — never a full
+   takeover, so the map (and destination pin) stay visible above it. */
+.panel[data-expanded="true"] {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.panel[data-expanded="true"] .panel__grip {
+  opacity: 0.7;
+}
+
 .panel__hero {
   display: flex;
   align-items: stretch;
   gap: 14px;
-  padding: 18px 18px 14px;
+  padding: 16px 18px;
   border-bottom: 1px dashed var(--ink);
 }
 
@@ -100,45 +276,17 @@
   border: 2px solid var(--ink);
   padding: 6px 12px 0;
   box-shadow: var(--shadow-flat-sm);
-  min-width: 110px;
+  min-width: 104px;
   text-align: center;
 }
 
-.panel__heroside {
+.panel__addr {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 4px;
   min-width: 0;
-}
-
-.panel__id {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  color: var(--ink-mute);
-}
-
-.panel__name {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 22px;
-  line-height: 1.05;
-  letter-spacing: -0.5px;
-  color: var(--ink);
-  margin: 0;
-  word-wrap: break-word;
-}
-
-/* ── ADDRESS ──────────────────────────────────── */
-.panel__addr {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 18px;
-  border-bottom: 1px dashed var(--ink);
 }
 
 .panel__addr-label {
@@ -222,14 +370,8 @@
 }
 
 @keyframes carriage-fill {
-  from {
-    transform: scaleY(0);
-    transform-origin: bottom;
-  }
-  to {
-    transform: scaleY(1);
-    transform-origin: bottom;
-  }
+  from { transform: scaleY(0); transform-origin: bottom; }
+  to { transform: scaleY(1); transform-origin: bottom; }
 }
 
 /* ── DATA GRID ──────────────────────────────── */
@@ -286,14 +428,51 @@
   color: var(--ink-mute);
 }
 
+/* ── MOBILE: bottom sheet ─────────────────────── */
 @media (max-width: 720px) {
   .panel {
     top: auto;
-    bottom: 80px;
-    left: 16px;
-    right: 16px;
+    bottom: 0;
+    left: 0;
+    right: 0;
     width: auto;
-    max-height: 70vh;
+    /* Override the base desktop cap — the mobile sheet is full-bleed,
+       otherwise it renders 32px short on the right. */
+    max-width: none;
+    /* Peek = content height. (Expanded cap is set below.) */
+    max-height: 82vh;
     overflow-y: auto;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    transform: translateY(calc(100% + 8px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Expanded sheet caps lower on phones so more map stays visible;
+     the rest of the detail scrolls within. */
+  .panel[data-expanded="true"] {
+    max-height: 60vh;
+  }
+
+  .panel--open {
+    transform: translateY(0);
+  }
+
+  .panel__handle {
+    height: 26px;
+  }
+
+  .panel__grip {
+    width: 52px;
+    height: 6px;
+  }
+
+  .panel__close {
+    width: 40px;
+    height: 40px;
+    top: 32px;
+    right: 8px;
+    font-size: 15px;
   }
 }

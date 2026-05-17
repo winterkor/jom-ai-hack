@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   server: {
+    allowedHosts: true,
     proxy: {
       // LTA DataMall doesn't set CORS headers for browser calls,
       // so we proxy through the Vite dev server.

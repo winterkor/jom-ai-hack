@@ -1,7 +1,27 @@
 .app {
   position: relative;
   width: 100vw;
+  /* 100vh is wrong on iOS Safari — its disappearing toolbar makes 100vh
+     taller than the visible area, pushing the FAB off-screen. dvh tracks
+     the *actual* visible viewport. vh kept as a fallback for old browsers. */
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--paper);
+}
+
+/* On phones, when the bottom-sheet panel is open it owns the lower half of
+   the screen. Hide the floating controls so they don't stack on top of it —
+   they reappear the moment the sheet is dismissed. */
+@media (max-width: 720px) {
+  .app--panel-open .fab {
+    display: none;
+  }
+
+  /* Legend is reference info; the marker colours are self-evident and the
+     screen is too small to spare the space (Google Maps hides legends on
+     mobile too). */
+  .legend {
+    display: none;
+  }
 }

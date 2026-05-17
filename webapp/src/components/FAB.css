@@ -120,7 +120,7 @@
 
 @media (max-width: 720px) {
   .fab {
-    bottom: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     right: 16px;
   }
   .fab__btn--primary {
@@ -129,5 +129,13 @@
   }
   .fab__sub {
     display: none;
+  }
+  /* Bigger touch targets on mobile */
+  .fab__btn--locate,
+  .fab__btn--primary {
+    height: 52px;
+  }
+  .fab__btn--locate {
+    width: 52px;
   }
 }

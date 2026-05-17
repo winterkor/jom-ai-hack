@@ -7,7 +7,9 @@
 // Routed through Vite's dev proxy (see vite.config.js): the browser hits `/lta/...`
 // which proxies to https://datamall2.mytransport.sg/ltaodataservice/...
 
-const LTA_KEY = import.meta.env.VITE_LTA_KEY;
+// Trim defensively — a stray space in .env.local (`VITE_LTA_KEY= abc`) would
+// otherwise be sent as the AccountKey header and rejected with 401.
+const LTA_KEY = (import.meta.env.VITE_LTA_KEY || "").trim();
 
 // Tampines bounding box (approximate)
 export const TAMPINES_BBOX = {
@@ -44,7 +46,10 @@ async function fetchOne(lat, lng) {
     }
   );
   if (!res.ok) {
-    throw new Error(`LTA fetch failed: ${res.status} ${res.statusText}`);
+    const body = await res.text().catch(() => "");
+    throw new Error(
+      `LTA ${res.status} ${res.statusText} @ ${lat},${lng} :: ${body.slice(0, 120)}`
+    );
   }
   const json = await res.json();
   return json.value || [];
@@ -94,7 +99,10 @@ export async function fetchTampinesRacks() {
   }
 
   if (okCalls === 0) {
-    throw new Error("All LTA grid calls failed — check the API key or network.");
+    const firstReason =
+      settled.find((r) => r.status === "rejected")?.reason?.message ||
+      "unknown";
+    throw new Error(`All LTA grid calls failed — ${firstReason}`);
   }
 
   return Array.from(seen.values());

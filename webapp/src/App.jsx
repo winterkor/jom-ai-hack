@@ -5,10 +5,9 @@ import SidePanel from "./components/SidePanel.jsx";
 import Legend from "./components/Legend.jsx";
 import SearchBar from "./components/SearchBar.jsx";
 import FAB from "./components/FAB.jsx";
-import RouteInfo from "./components/RouteInfo.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
 import { fetchTampinesRacks } from "./data/ltaClient.js";
-import { findNearestAvailable, haversineKm } from "./data/geo.js";
+import { findNearestAvailable } from "./data/geo.js";
 import "./App.css";
 
 const TAMPINES_CENTER = { lat: 1.354, lng: 103.943 };
@@ -17,12 +16,14 @@ export default function App() {
   const [racks, setRacks] = useState(mockRacks);
   const [dataState, setDataState] = useState("loading");
   const [selectedRack, setSelectedRack] = useState(null);
+  const [panelExpanded, setPanelExpanded] = useState(false);
 
-  // Navigation state
-  const [userPos, setUserPos] = useState(null);          // { lat, lng } once located
+  // Geolocation
+  const [userPos, setUserPos] = useState(null); // { lat, lng } once located
   const [locating, setLocating] = useState(false);
-  const [route, setRoute] = useState(null);              // { origin, target, targetRack, distanceKm, isStraightLine }
-  const [flyTo, setFlyTo] = useState(null);              // { lat, lng, zoom, bounds? } imperative trigger
+
+  // Imperative map-fly trigger: { lat, lng, zoom, key }
+  const [flyTo, setFlyTo] = useState(null);
 
   // Load LTA data on mount
   useEffect(() => {
@@ -83,79 +84,59 @@ export default function App() {
     if (p) setFlyTo({ ...p, zoom: 16, key: Date.now() });
   };
 
-  // ── Find nearest available rack ──────────────────────
+  // Center the map on a rack and open its detail card in PEEK state.
+  // `offset: true` tells MapView to nudge the pin clear of the panel/sheet.
+  const showRackDetail = (rack) => {
+    setSelectedRack(rack);
+    setPanelExpanded(false);
+    setFlyTo({
+      lat: rack.lat,
+      lng: rack.lng,
+      zoom: 16,
+      offset: true,
+      key: Date.now(),
+    });
+  };
+
+  const closePanel = () => {
+    setSelectedRack(null);
+    setPanelExpanded(false);
+  };
+
+  // ── Find nearest available rack → detail card (no route yet) ──
   const handleFindNearest = async () => {
     let origin = userPos;
     if (!origin) {
       origin = (await locateMe()) || TAMPINES_CENTER;
     }
     const result = findNearestAvailable(origin, racks, getRackStatus);
-    if (!result) return; // every rack full — unlikely but possible
-
-    const distanceKm = haversineKm(origin, {
-      lat: result.rack.lat,
-      lng: result.rack.lng,
-    });
-
-    setSelectedRack(result.rack);
-    setRoute({
-      origin,
-      target: { lat: result.rack.lat, lng: result.rack.lng },
-      targetRack: result.rack,
-      distanceKm,
-      isStraightLine: true, // ORS routing comes in Ship 2b
-    });
-    // Fly to fit both points
-    setFlyTo({
-      bounds: [
-        [origin.lat, origin.lng],
-        [result.rack.lat, result.rack.lng],
-      ],
-      key: Date.now(),
-    });
+    if (!result) return; // every rack full — handled in Ship 2b
+    showRackDetail(result.rack);
   };
 
-  // ── Search bar pick handler ──────────────────────────
+  // ── Search pick: rack → detail; place → nearest rack → detail ──
   const handleSearchPick = (result) => {
     if (result.kind === "rack") {
-      setSelectedRack(result.rack);
-      setRoute(null);
-      setFlyTo({ lat: result.lat, lng: result.lng, zoom: 17, key: Date.now() });
+      showRackDetail(result.rack);
     } else {
-      // Place pick: find nearest available rack to that place, route from there
       const nearest = findNearestAvailable(
         { lat: result.lat, lng: result.lng },
         racks,
         getRackStatus
       );
       if (nearest) {
-        setSelectedRack(nearest.rack);
-        setRoute({
-          origin: { lat: result.lat, lng: result.lng },
-          target: { lat: nearest.rack.lat, lng: nearest.rack.lng },
-          targetRack: nearest.rack,
-          distanceKm: nearest.distanceKm,
-          isStraightLine: true,
-        });
-        setFlyTo({
-          bounds: [
-            [result.lat, result.lng],
-            [nearest.rack.lat, nearest.rack.lng],
-          ],
-          key: Date.now(),
-        });
+        showRackDetail(nearest.rack);
       } else {
         setFlyTo({ lat: result.lat, lng: result.lng, zoom: 17, key: Date.now() });
       }
     }
   };
 
-  const handleCancelRoute = () => {
-    setRoute(null);
-  };
+  // Placeholder — real cycling navigation lands in Ship 2b (ORS).
+  const handleStartNavigation = () => {};
 
   return (
-    <div className="app grain">
+    <div className={`app grain${selectedRack ? " app--panel-open" : ""}`}>
       <Header
         racksOnline={racks.length}
         availableSlots={availableCount}
@@ -167,17 +148,21 @@ export default function App() {
       <MapView
         racks={racks}
         selectedRack={selectedRack}
-        onSelectRack={setSelectedRack}
+        onSelectRack={showRackDetail}
         userPos={userPos}
-        route={route}
         flyTo={flyTo}
       />
 
-      <SidePanel rack={selectedRack} onClose={() => setSelectedRack(null)} />
+      <SidePanel
+        rack={selectedRack}
+        userPos={userPos}
+        expanded={panelExpanded}
+        onToggleExpand={() => setPanelExpanded((v) => !v)}
+        onClose={closePanel}
+        onStartNavigation={handleStartNavigation}
+      />
 
       <Legend />
-
-      <RouteInfo route={route} onCancel={handleCancelRoute} />
 
       <FAB
         onFindNearest={handleFindNearest}

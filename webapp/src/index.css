@@ -63,6 +63,16 @@ button {
   margin: 16px !important;
 }
 
+/* On mobile, move zoom controls to bottom-left so they don't clash with the search bar at top-right */
+@media (max-width: 720px) {
+  .leaflet-top.leaflet-right {
+    top: auto !important;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: auto;
+  }
+}
+
 .leaflet-control-zoom a {
   background: var(--card) !important;
   color: var(--ink) !important;
@@ -70,9 +80,9 @@ button {
   font-weight: 800 !important;
   border-radius: 0 !important;
   border-bottom: 1px solid var(--ink) !important;
-  width: 36px !important;
-  height: 36px !important;
-  line-height: 36px !important;
+  width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
   font-size: 20px !important;
 }
 

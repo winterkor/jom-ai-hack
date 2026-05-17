@@ -15,6 +15,8 @@
   --status-filling-soft: #F5E0B7;
   --status-full: #D64545;
   --status-full-soft: #F2C6C6;
+  --status-offline: #9E9E9E;
+  --status-offline-soft: #E8E8E8;
 
   /* ── ACCENTS ───────────────────────────────── */
   --hazard: #FFD93D;

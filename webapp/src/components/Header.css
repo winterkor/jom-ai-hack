@@ -1,3 +1,8 @@
+/* Option B — full brutalist station-board, progressively collapsing.
+   Desktop: TPN mark + title + sub + 3 stats + stripe + hazard tape.
+   Tablet : drop LOCAL TIME.
+   Phone  : compact identity bar — mark + title + status dot + FREE only. */
+
 .hdr {
   position: absolute;
   top: 16px;
@@ -13,40 +18,23 @@
 }
 
 @keyframes hdr-in {
-  from {
-    transform: translateY(-30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(-30px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
 }
 
-/* MRT-line color stripe — three coloured blocks running the top */
 .hdr__stripe {
   display: flex;
   height: 8px;
   border-bottom: 2px solid var(--ink);
 }
-
-.hdr__stripe-block {
-  flex: 1;
-}
-.hdr__stripe-block[data-c="green"] {
-  background: var(--status-available);
-}
-.hdr__stripe-block[data-c="amber"] {
-  background: var(--status-filling);
-}
-.hdr__stripe-block[data-c="red"] {
-  background: var(--status-full);
-}
+.hdr__stripe-block { flex: 1; }
+.hdr__stripe-block[data-c="green"] { background: var(--status-available); }
+.hdr__stripe-block[data-c="amber"] { background: var(--status-filling); }
+.hdr__stripe-block[data-c="red"]   { background: var(--status-full); }
 
 .hdr__row {
   display: flex;
   align-items: stretch;
-  gap: 0;
 }
 
 .hdr__brand {
@@ -71,11 +59,7 @@
   box-shadow: var(--shadow-flat-sm);
 }
 
-.hdr__lines {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.hdr__lines { display: flex; flex-direction: column; gap: 2px; }
 
 .hdr__title {
   font-family: var(--font-display);
@@ -98,50 +82,34 @@
 .hdr__dot {
   font-size: 10px;
   margin: 0 4px;
-  animation: pulse 1.6s var(--ease-in-out) infinite;
+  animation: hdr-pulse 1.6s var(--ease-in-out) infinite;
   color: var(--status-available);
 }
+.hdr__dot[data-c="amber"] { color: var(--status-filling); }
+.hdr__dot[data-c="red"]   { color: var(--status-full); }
 
-.hdr__dot[data-c="amber"] {
-  color: var(--status-filling);
-}
-.hdr__dot[data-c="red"] {
-  color: var(--status-full);
-}
-
-@keyframes pulse {
+@keyframes hdr-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50%       { opacity: 0.3; }
 }
 
-.hdr__stats {
-  display: flex;
-  align-items: stretch;
-}
+.hdr__stats { display: flex; align-items: stretch; }
 
 .stat {
   padding: 14px 16px;
   border-right: 1px solid var(--ink);
   background: var(--card);
-  min-width: 100px;
+  min-width: 96px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 4px;
 }
+.stat:last-child { border-right: none; }
 
-.stat:last-child {
-  border-right: none;
-}
-
-.stat--hi {
-  background: var(--status-available);
-}
-
+.stat--hi { background: var(--status-available); }
 .stat--hi .stat__label,
-.stat--hi .stat__value {
-  color: var(--card);
-}
+.stat--hi .stat__value { color: var(--card); }
 
 .stat__label {
   font-family: var(--font-mono);
@@ -168,7 +136,6 @@
   letter-spacing: 0;
 }
 
-/* Diagonal hazard stripe along the bottom edge — construction signage tribute */
 .hdr__hazard {
   height: 6px;
   background-image: repeating-linear-gradient(
@@ -179,16 +146,61 @@
   border-top: 2px solid var(--ink);
 }
 
+/* ── TABLET: drop LOCAL TIME, tighten ─────────────── */
+@media (max-width: 880px) {
+  .hdr { min-width: 0; width: auto; }
+  .stat--time { display: none; }
+  .stat { min-width: 80px; padding: 12px 14px; }
+}
+
+/* ── PHONE: compact identity bar ──────────────────── */
+/* 720px matches the breakpoint used by SearchBar / FAB / panel so the whole
+   mobile range shares one predictable header height (~87px bottom edge). */
 @media (max-width: 720px) {
   .hdr {
-    min-width: auto;
-    width: calc(100vw - 32px);
+    left: 16px;
+    right: 16px;
+    max-width: none;
   }
-  .hdr__stats {
-    flex-wrap: wrap;
-  }
-  .stat {
-    min-width: 33%;
+
+  .hdr__stripe { height: 5px; }
+
+  .hdr__row { align-items: center; }
+
+  .hdr__brand {
+    gap: 10px;
+    padding: 8px 12px;
+    border-right: 2px solid var(--ink);
     flex: 1;
+    min-width: 0;
   }
+
+  .hdr__mark {
+    font-size: 24px;
+    padding: 4px 7px 2px;
+  }
+
+  .hdr__title { font-size: 16px; }
+
+  /* Sub-line collapses to just the live dot + state text, no network name */
+  .hdr__sub { font-size: 8px; letter-spacing: 0.4px; }
+
+  /* Keep only the SLOTS FREE stat on phone */
+  .stat--racks,
+  .stat--time { display: none; }
+
+  .stat--hi {
+    min-width: 0;
+    padding: 8px 14px;
+  }
+  .stat--hi .stat__value { font-size: 24px; }
+  .stat--hi .stat__label { font-size: 8px; }
+
+  .hdr__hazard { height: 4px; }
+}
+
+/* Very narrow: hide the network sub-name text, keep dot+state */
+@media (max-width: 380px) {
+  .hdr__title { font-size: 15px; }
+  .hdr__mark { font-size: 21px; }
 }

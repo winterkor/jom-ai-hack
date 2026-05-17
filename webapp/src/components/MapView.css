@@ -85,6 +85,13 @@
 .rack-marker[data-status="full"] .rack-marker__stripe {
   background: var(--status-full);
 }
+.rack-marker[data-status="offline"] .rack-marker__stripe {
+  background: var(--status-offline);
+}
+.rack-marker[data-status="offline"] {
+  opacity: 0.6;
+  filter: grayscale(0.6);
+}
 
 .rack-marker__code {
   pointer-events: none;
@@ -202,6 +209,13 @@
 .rack-cluster[data-status="full"] .rack-cluster__stripe {
   background: var(--status-full);
 }
+.rack-cluster[data-status="offline"] .rack-cluster__stripe {
+  background: var(--status-offline);
+}
+.rack-cluster[data-status="offline"] {
+  opacity: 0.6;
+  filter: grayscale(0.6);
+}
 
 .rack-cluster__count {
   pointer-events: none;
@@ -277,6 +291,97 @@
   }
 }
 
+/* ── DESTINATION PIN (selected rack — always on top) ── */
+.dest-marker-wrap {
+  background: transparent !important;
+  border: none !important;
+}
+
+.dest-marker {
+  position: relative;
+  width: 72px;
+  height: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: dest-drop 360ms var(--ease-out) both;
+}
+
+@keyframes dest-drop {
+  0% { transform: translateY(-18px) scale(0.8); opacity: 0; }
+  60% { transform: translateY(0) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.dest-marker__pulse {
+  position: absolute;
+  top: 44px;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin-left: -13px;
+  margin-top: -13px;
+  background: var(--hazard);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: dest-pulse 1.5s var(--ease-out) infinite;
+  z-index: 0;
+}
+
+@keyframes dest-pulse {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.dest-marker__tab {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 1.6px;
+  color: var(--card);
+  background: var(--ink);
+  padding: 3px 8px 2px;
+  border: 2px solid var(--ink);
+  border-bottom: none;
+  z-index: 2;
+}
+
+.dest-marker__badge {
+  font-family: var(--font-numeric);
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--ink);
+  background: var(--hazard);
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  padding: 8px 12px 6px;
+  z-index: 2;
+}
+
+.dest-marker__stem {
+  width: 4px;
+  height: 16px;
+  background: var(--ink);
+  z-index: 1;
+}
+
+/* ── FOCUS MODE: dim everything except the destination ──
+   Uses filter:opacity() not opacity — the markers run `marker-pop … both`,
+   and a filled CSS animation overrides a static opacity declaration, so a
+   plain `opacity` rule would never take effect. filter sidesteps that. */
+.mapview .rack-marker,
+.mapview .rack-cluster {
+  transition: filter var(--dur) var(--ease-out);
+}
+
+.mapview[data-focus="true"] .rack-marker,
+.mapview[data-focus="true"] .rack-cluster {
+  filter: opacity(0.3);
+}
+
 /* ── ROUTE LINE ANIMATION ──────────────────────────── */
 .route-line {
   animation: route-dash 1s linear infinite;
@@ -285,5 +390,62 @@
 @keyframes route-dash {
   to {
     stroke-dashoffset: -36;
+  }
+}
+
+/* ── ZOOM CONTROL (bottom-right, desktop only) ─────── */
+/* Sits above the FAB; the FAB is the dominant bottom-right element so the
+   zoom buttons stack neatly on top of it. */
+.leaflet-bottom.leaflet-right {
+  margin-bottom: 88px;
+  margin-right: 8px;
+}
+
+/* ── MOBILE: ≤720px ────────────────────────────────── */
+@media (max-width: 720px) {
+  /* Touch devices pinch-to-zoom — the buttons just clutter and collide. */
+  .leaflet-control-zoom {
+    display: none !important;
+  }
+
+  /* Smaller badges so dense areas don't pile into an unreadable stack */
+  .rack-marker {
+    width: 42px;
+    height: 42px;
+  }
+  .rack-marker__code {
+    font-size: 17px;
+    margin-top: 6px;
+  }
+  .rack-marker__chip {
+    min-width: 18px;
+    height: 18px;
+    top: -7px;
+    right: -7px;
+    font-size: 9px;
+    border-width: 1.5px;
+  }
+  .rack-marker__tail {
+    width: 8px;
+    height: 8px;
+    bottom: -5px;
+  }
+  .rack-marker--sel {
+    transform: scale(1.12) translateY(-4px);
+  }
+
+  .rack-cluster {
+    width: 48px;
+    height: 48px;
+  }
+  .rack-cluster__stripe {
+    height: 6px;
+  }
+  .rack-cluster__count {
+    font-size: 19px;
+    margin-top: 6px;
+  }
+  .rack-cluster__free {
+    font-size: 7px;
   }
 }

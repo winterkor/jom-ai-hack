@@ -10,6 +10,12 @@
   animation: legend-in 600ms 800ms var(--ease-out) both;
 }
 
+@media (max-width: 720px) {
+  .legend {
+    display: none;
+  }
+}
+
 @keyframes legend-in {
   from {
     transform: translateY(40px);
