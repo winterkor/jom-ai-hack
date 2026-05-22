@@ -5,6 +5,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { getRackStatus, getAvailableSlots } from "../data/rackData.js";
+import ZonesLayer from "./ZonesLayer.jsx";
 import "./MapView.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
@@ -227,6 +228,7 @@ export default function MapView({
   onSelectRack,
   userPos,
   flyTo,
+  onZonesLoaded,
 }) {
   return (
     <div className="mapview" data-focus={selectedRack ? "true" : "false"}>
@@ -245,6 +247,8 @@ export default function MapView({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &middot; CartoDB &middot; LTA DataMall'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
+
+        <ZonesLayer onZonesLoaded={onZonesLoaded} />
 
         <RackLayer
           racks={racks}
