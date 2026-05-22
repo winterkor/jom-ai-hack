@@ -48,14 +48,10 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
 
   const openCount = incidents.filter((i) => i.status === "open").length;
 
-  const { totalSlots, occupiedSlots, usedPct } = useMemo(() => {
+  const usedPct = useMemo(() => {
     const total = racks.reduce((s, r) => s + r.totalSlots, 0);
     const used = racks.reduce((s, r) => s + r.occupiedSlots, 0);
-    return {
-      totalSlots: total,
-      occupiedSlots: used,
-      usedPct: total ? Math.round((used / total) * 100) : 0,
-    };
+    return total ? Math.round((used / total) * 100) : 0;
   }, [racks]);
 
   // When an incident is tapped from the LiveFeed-less phone, focus stays in

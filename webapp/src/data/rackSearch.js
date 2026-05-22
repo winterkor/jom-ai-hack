@@ -34,5 +34,6 @@ export function searchRacks(query, racks, { limit = 6 } = {}) {
   return scored
     .sort((a, b) => b._score - a._score)
     .slice(0, limit)
+    // eslint-disable-next-line no-unused-vars -- destructure strips _score from output
     .map(({ _score, ...rest }) => rest);
 }
