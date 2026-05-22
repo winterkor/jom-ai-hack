@@ -15,6 +15,13 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/lta/, "/ltaodataservice"),
       },
+      // Teammate backend (FastAPI + PostGIS) — no CORS middleware,
+      // so the dev server proxies for us.
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
     },
   },
 });

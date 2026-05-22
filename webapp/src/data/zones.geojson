@@ -1,0 +1,91 @@
+{
+  "type": "FeatureCollection",
+  "_meta": {
+    "note": "Hand-drawn fallback used when GET /api/zones is unavailable. Polygons hover over real Tampines locations — Hub, Mall, St 81, MRT Exit A. Sizes are exaggerated (~50m wide) so they read on screen at zoom 14-17. If Lbleeee seeds the same shapes into ParkingZone, frontend visuals will agree with POST /parking/validate.",
+    "authored": "2026-05-22"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "zoneId": "zone-hub",
+        "name": "Tampines Hub Bike Park",
+        "kind": "park",
+        "occupancyState": "available",
+        "capacity": 60,
+        "occupied": 22
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [103.94443, 1.35242],
+          [103.94497, 1.35242],
+          [103.94497, 1.35278],
+          [103.94443, 1.35278],
+          [103.94443, 1.35242]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zoneId": "zone-mall",
+        "name": "Tampines Mall Rack",
+        "kind": "park",
+        "occupancyState": "filling",
+        "capacity": 40,
+        "occupied": 28
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [103.94278, 1.35384],
+          [103.94322, 1.35384],
+          [103.94322, 1.35416],
+          [103.94278, 1.35416],
+          [103.94278, 1.35384]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zoneId": "zone-st81",
+        "name": "Tampines St 81 Rack",
+        "kind": "park",
+        "occupancyState": "available",
+        "capacity": 30,
+        "occupied": 9
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [103.94358, 1.35464],
+          [103.94402, 1.35464],
+          [103.94402, 1.35496],
+          [103.94358, 1.35496],
+          [103.94358, 1.35464]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "zoneId": "zone-mrt-exit-a",
+        "name": "Tampines MRT Exit A",
+        "kind": "no-park",
+        "reason": "MRT exit walkway — no bicycle parking"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [103.94502, 1.35297],
+          [103.94538, 1.35297],
+          [103.94538, 1.35324],
+          [103.94502, 1.35324],
+          [103.94502, 1.35297]
+        ]]
+      }
+    }
+  ]
+}
