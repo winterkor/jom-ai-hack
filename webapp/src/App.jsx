@@ -5,10 +5,31 @@ import SidePanel from "./components/SidePanel.jsx";
 import Legend from "./components/Legend.jsx";
 import SearchBar from "./components/SearchBar.jsx";
 import FAB from "./components/FAB.jsx";
+import AdminDashboard from "./components/admin/AdminDashboard.jsx";
+import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
 import { fetchTampinesRacks } from "./data/ltaClient.js";
 import { findNearestAvailable } from "./data/geo.js";
 import "./App.css";
+
+const ROLE_KEY = "jom-role";
+
+// Resolve initial mode: ?reset=1 → splash; hash → mode; stored role → mode; else splash.
+function initialMode() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("reset")) {
+    localStorage.removeItem(ROLE_KEY);
+    // strip the query so subsequent reloads behave normally
+    window.history.replaceState(null, "", window.location.pathname);
+    return "splash";
+  }
+  const h = window.location.hash;
+  if (h === "#/admin") return "admin";
+  if (h === "#/user") return "user";
+  const saved = localStorage.getItem(ROLE_KEY);
+  if (saved === "admin" || saved === "user") return saved;
+  return "splash";
+}
 
 const TAMPINES_CENTER = { lat: 1.354, lng: 103.943 };
 
@@ -17,6 +38,46 @@ export default function App() {
   const [dataState, setDataState] = useState("loading");
   const [selectedRack, setSelectedRack] = useState(null);
   const [panelExpanded, setPanelExpanded] = useState(false);
+  const [mode, setMode] = useState(initialMode);
+
+  // Keep hash in sync with mode so deep-links work; ignore splash mode.
+  useEffect(() => {
+    const target = mode === "admin" ? "#/admin" : mode === "user" ? "#/user" : "";
+    if (window.location.hash !== target) {
+      // replaceState avoids spamming history when role flips
+      window.history.replaceState(null, "", target || window.location.pathname);
+    }
+  }, [mode]);
+
+  // Honour external hash changes (deep links).
+  useEffect(() => {
+    const onHash = () => {
+      const h = window.location.hash;
+      if (h === "#/admin") setMode("admin");
+      else if (h === "#/user") setMode("user");
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // The ONLY path that persists a role choice. Used from the splash tiles.
+  const pickRole = (role) => {
+    localStorage.setItem(ROLE_KEY, role);
+    setMode(role);
+  };
+
+  // Returns to splash AND clears the stored choice (logo click).
+  const goSplash = () => {
+    localStorage.removeItem(ROLE_KEY);
+    setMode("splash");
+  };
+
+  // Transient switch — does not change the stored role.
+  // (Used by AdminNav's "← User app" so peeking at the rider view doesn't
+  //  overwrite a maintainer's saved choice.)
+  const goUser = () => {
+    setMode("user");
+  };
 
   // Geolocation
   const [userPos, setUserPos] = useState(null); // { lat, lng } once located
@@ -135,12 +196,28 @@ export default function App() {
   // Placeholder — real cycling navigation lands in Ship 2b (ORS).
   const handleStartNavigation = () => {};
 
+  if (mode === "splash") {
+    return <RoleSplash onPick={pickRole} />;
+  }
+
+  if (mode === "admin") {
+    return (
+      <AdminDashboard
+        racks={racks}
+        dataState={dataState}
+        onExit={goUser}
+        onHome={goSplash}
+      />
+    );
+  }
+
   return (
     <div className={`app grain${selectedRack ? " app--panel-open" : ""}`}>
       <Header
         racksOnline={racks.length}
         availableSlots={availableCount}
         dataState={dataState}
+        onHome={goSplash}
       />
 
       <SearchBar racks={racks} onSelectResult={handleSearchPick} />

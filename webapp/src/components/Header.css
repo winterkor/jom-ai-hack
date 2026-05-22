@@ -57,6 +57,17 @@
   border: 2px solid var(--ink);
   padding: 6px 10px 4px;
   box-shadow: var(--shadow-flat-sm);
+  cursor: pointer;
+  transition: transform 100ms ease;
+}
+
+.hdr__mark:hover {
+  transform: translateY(-1px);
+}
+
+.hdr__mark:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
 }
 
 .hdr__lines { display: flex; flex-direction: column; gap: 2px; }

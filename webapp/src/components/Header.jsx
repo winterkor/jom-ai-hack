@@ -12,6 +12,7 @@ export default function Header({
   racksOnline,
   availableSlots,
   dataState = "live",
+  onHome,
 }) {
   const now = new Date();
   const stamp = `${String(now.getHours()).padStart(2, "0")}:${String(
@@ -29,7 +30,15 @@ export default function Header({
 
       <div className="hdr__row">
         <div className="hdr__brand">
-          <div className="hdr__mark">TPN</div>
+          <button
+            type="button"
+            className="hdr__mark"
+            onClick={onHome}
+            title="Back to role select"
+            aria-label="Back to role select"
+          >
+            TPN
+          </button>
           <div className="hdr__lines">
             <div className="hdr__title">PARK·NET</div>
             <div className="hdr__sub">

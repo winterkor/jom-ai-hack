@@ -1,0 +1,144 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+      ellipse at 30% 20%,
+      rgba(74, 140, 255, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 80% 80%,
+      rgba(229, 57, 53, 0.12),
+      transparent 60%
+    ),
+    #0e1116;
+  color: #e6e9ef;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  overflow: auto;
+  padding: 32px 16px;
+  z-index: 9000;
+}
+
+.splash__inner {
+  width: min(880px, 100%);
+  text-align: center;
+}
+
+.splash__brand {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.splash__logo {
+  font: 800 22px/1 "Inter", sans-serif;
+  letter-spacing: 0.12em;
+  background: linear-gradient(135deg, #4a8cff, #b66dff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.splash__tag {
+  font: 600 11px/1 "Inter", sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a93a6;
+}
+
+.splash__title {
+  margin: 0 0 8px;
+  font: 800 clamp(28px, 5vw, 44px)/1.1 "Inter", sans-serif;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.splash__sub {
+  margin: 0 auto 36px;
+  max-width: 520px;
+  font: 500 14px/1.5 "Inter", sans-serif;
+  color: #b3bccd;
+}
+
+.splash__tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.splash-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  background: rgba(22, 27, 34, 0.85);
+  border: 1px solid #262d3a;
+  border-radius: 14px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease,
+    box-shadow 140ms ease, background 140ms ease;
+  backdrop-filter: blur(6px);
+}
+
+.splash-tile:hover {
+  transform: translateY(-2px);
+  background: rgba(28, 34, 48, 0.92);
+}
+
+.splash-tile--rider:hover {
+  border-color: #4a8cff;
+  box-shadow: 0 16px 40px -16px rgba(74, 140, 255, 0.55);
+}
+
+.splash-tile--maintainer:hover {
+  border-color: #b66dff;
+  box-shadow: 0 16px 40px -16px rgba(182, 109, 255, 0.55);
+}
+
+.splash-tile__icon {
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.splash-tile__name {
+  font: 800 20px/1.2 "Inter", sans-serif;
+  color: #fff;
+}
+
+.splash-tile__desc {
+  font: 500 13px/1.45 "Inter", sans-serif;
+  color: #b3bccd;
+  margin-bottom: 8px;
+}
+
+.splash-tile__cta {
+  font: 700 12px/1 "Inter", sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4a8cff;
+  margin-top: auto;
+}
+
+.splash-tile--maintainer .splash-tile__cta {
+  color: #b66dff;
+}
+
+.splash__foot {
+  font: 500 11px/1.5 "Inter", sans-serif;
+  letter-spacing: 0.04em;
+  color: #6b748a;
+}
+
+@media (max-width: 640px) {
+  .splash__tiles {
+    grid-template-columns: 1fr;
+  }
+}
