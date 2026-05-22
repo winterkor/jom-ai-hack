@@ -8,6 +8,7 @@ import FAB from "./components/FAB.jsx";
 import NavPreviewCard from "./components/NavPreviewCard.jsx";
 import NavBanner from "./components/NavBanner.jsx";
 import NavExitBar from "./components/NavExitBar.jsx";
+import ParkingConfirmCard from "./components/ParkingConfirmCard.jsx";
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
@@ -36,6 +37,7 @@ function initialMode() {
 }
 
 const TAMPINES_CENTER = { lat: 1.354, lng: 103.943 };
+const DEMO_START = { lat: 1.3528, lng: 103.9447 };
 
 export default function App() {
   const [racks, setRacks] = useState(mockRacks);
@@ -212,8 +214,8 @@ export default function App() {
     if (!selectedRack) return;
     let from = userPos;
     if (!from) {
-      from = await locateMe();
-      if (!from) return;
+      from = (await locateMe()) || DEMO_START;
+      setUserPos(from);
     }
     const to = { lat: selectedRack.lat, lng: selectedRack.lng };
     const osrm = await getCyclingRoute(from, to);
@@ -255,6 +257,52 @@ export default function App() {
     setNavRoute(null);
   };
 
+  const handleArrive = () => {
+    if (!selectedRack) return;
+    setNavState("arrived");
+    setFlyTo({
+      lat: selectedRack.lat,
+      lng: selectedRack.lng,
+      zoom: 18,
+      offset: true,
+      key: Date.now(),
+    });
+  };
+
+  const handleConfirmParked = () => {
+    if (!selectedRack) return;
+    setRacks((prev) =>
+      prev.map((r) =>
+        r.id === selectedRack.id
+          ? {
+              ...r,
+              occupiedSlots: Math.min(r.totalSlots, r.occupiedSlots + 1),
+            }
+          : r,
+      ),
+    );
+    setNavState("parked");
+  };
+
+  const handleFindAnother = () => {
+    const origin = userPos || (selectedRack
+      ? { lat: selectedRack.lat, lng: selectedRack.lng }
+      : TAMPINES_CENTER);
+    const excludeId = selectedRack?.id;
+    const candidates = racks.filter((r) => r.id !== excludeId);
+    const result = findNearestAvailable(origin, candidates, getRackStatus);
+    setNavState("idle");
+    setNavRoute(null);
+    if (result) showRackDetail(result.rack);
+  };
+
+  const handleParkedDone = () => {
+    setNavState("idle");
+    setNavRoute(null);
+    setSelectedRack(null);
+    setPanelExpanded(false);
+  };
+
   if (mode === "splash") {
     return <RoleSplash onPick={pickRole} />;
   }
@@ -272,7 +320,8 @@ export default function App() {
 
   const isPreview = navState === "preview";
   const isActive = navState === "active";
-  const isNavving = isPreview || isActive;
+  const isArrived = navState === "arrived" || navState === "parked";
+  const isNavving = isPreview || isActive || isArrived;
 
   const firstStep = navRoute?.steps?.[0];
   const nextStep = navRoute?.steps?.[1];
@@ -284,16 +333,17 @@ export default function App() {
       }`}
       data-nav-state={navState}
     >
-      <Header
-        racksOnline={racks.length}
-        availableSlots={availableCount}
-        dataState={dataState}
-        onHome={goSplash}
-      />
+      {!isNavving && (
+        <Header
+          racksOnline={racks.length}
+          availableSlots={availableCount}
+          dataState={dataState}
+          onHome={goSplash}
+        />
+      )}
 
-      {/* SearchBar hides during active nav (banner replaces it). Preview
-          keeps search visible so users can re-pick a destination. */}
-      {!isActive && <SearchBar racks={racks} onSelectResult={handleSearchPick} />}
+      {/* Route preview/active mode becomes a focused mini navigation screen. */}
+      {!isNavving && <SearchBar racks={racks} onSelectResult={handleSearchPick} />}
 
       {isActive && (
         <NavBanner step={firstStep} nextStep={nextStep} />
@@ -306,6 +356,7 @@ export default function App() {
         userPos={userPos}
         flyTo={flyTo}
         routeCoords={navRoute?.coords || null}
+        navState={navState}
       />
 
       {/* SidePanel only when not in nav flow — preview/active have their
@@ -331,7 +382,21 @@ export default function App() {
       )}
 
       {isActive && (
-        <NavExitBar route={navRoute} onExit={handleExitNav} />
+        <NavExitBar
+          route={navRoute}
+          onExit={handleExitNav}
+          onArrive={handleArrive}
+        />
+      )}
+
+      {isArrived && (
+        <ParkingConfirmCard
+          state={navState === "parked" ? "parked" : "arrived"}
+          rack={selectedRack}
+          onConfirm={handleConfirmParked}
+          onFindAnother={handleFindAnother}
+          onDone={handleParkedDone}
+        />
       )}
 
       {/* Legend + FAB only in idle — nav UI claims the chrome. */}

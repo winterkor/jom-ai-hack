@@ -1,0 +1,135 @@
+.parkconfirm {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 770;
+  background: #fffefa;
+  border-top: 2px solid rgba(31, 42, 68, 0.16);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -18px 40px rgba(31, 42, 68, 0.18);
+  padding: 14px 22px calc(22px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-body);
+  animation: parkconfirm-in var(--dur) var(--ease-out);
+}
+
+@media (min-width: 721px) {
+  .parkconfirm {
+    left: auto;
+    right: 18px;
+    bottom: 18px;
+    width: min(430px, calc(100vw - 36px));
+    border: 2px solid rgba(31, 42, 68, 0.16);
+    border-radius: 28px;
+  }
+}
+
+@keyframes parkconfirm-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.parkconfirm__handle {
+  width: 58px;
+  height: 6px;
+  align-self: center;
+  border-radius: 999px;
+  background: #d1d5db;
+}
+
+.parkconfirm__status {
+  color: #00838f;
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.parkconfirm__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 6.8vw, 38px);
+  line-height: 1.05;
+  color: #22252c;
+}
+
+.parkconfirm__copy {
+  margin: 0;
+  color: #6b7280;
+  font-size: var(--step-1);
+  line-height: 1.35;
+}
+
+.parkconfirm__rack {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f1faf9;
+  border-radius: 18px;
+}
+
+.parkconfirm__rack > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.parkconfirm__rack strong {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step-3);
+  color: #050505;
+}
+
+.parkconfirm__label {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  color: #00838f;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.parkconfirm__primary,
+.parkconfirm__secondary {
+  appearance: none;
+  border: 0;
+  min-height: 54px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step-2);
+  cursor: pointer;
+  transition: transform var(--dur-fast), filter var(--dur-fast);
+}
+
+.parkconfirm__primary {
+  background: #00838f;
+  color: #fff;
+}
+
+.parkconfirm__primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(0.98);
+}
+
+.parkconfirm__secondary {
+  background: #f1f3f4;
+  color: #22252c;
+}
+
+.parkconfirm__secondary:hover {
+  background: #e8eaed;
+}

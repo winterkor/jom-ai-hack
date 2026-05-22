@@ -2,7 +2,7 @@ import "./NavExitBar.css";
 
 // Compact bottom bar during active nav — total ETA/distance/arrival on the
 // left, big red Exit button on the right (matching Google Maps' nav chrome).
-export default function NavExitBar({ route, onExit }) {
+export default function NavExitBar({ route, onExit, onArrive }) {
   if (!route) return null;
   const minutes = Math.max(1, Math.round(route.durationS / 60));
   const distLabel = formatMeters(route.distanceM);
@@ -16,19 +16,31 @@ export default function NavExitBar({ route, onExit }) {
           <span className="navexit__unit">min</span>
         </div>
         <div className="navexit__meta">
-          <div className="navexit__line">{distLabel} · ETA {arrival}</div>
-          <div className="navexit__sub">CYCLING · LIVE</div>
+          <div className="navexit__line">{distLabel} · {arrival}</div>
+          <div className="navexit__sub">Cycling navigation</div>
         </div>
       </div>
 
-      <button
-        type="button"
-        className="navexit__btn"
-        onClick={onExit}
-        aria-label="Exit navigation"
-      >
-        EXIT
-      </button>
+      <div className="navexit__actions">
+        {onArrive && (
+          <button
+            type="button"
+            className="navexit__arrive"
+            onClick={onArrive}
+            aria-label="I've arrived"
+          >
+            ARRIVE
+          </button>
+        )}
+        <button
+          type="button"
+          className="navexit__btn"
+          onClick={onExit}
+          aria-label="Exit navigation"
+        >
+          EXIT
+        </button>
+      </div>
     </div>
   );
 }
