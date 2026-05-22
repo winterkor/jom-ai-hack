@@ -12,14 +12,14 @@ import "./AdminMap.css";
 const TAMPINES_CENTER = [1.354, 103.943];
 
 function buildRackIcon({ severity, count, occupancyPct }) {
-  const sevColor = severity ? SEVERITY[severity].color : "#3a4256";
+  const sevColor = severity ? SEVERITY[severity].color : "var(--admin-text-muted)";
   const pulse = severity === "high" ? " admin-pin--pulse" : "";
   const ringColor =
     occupancyPct >= 90
-      ? "#E53935"
+      ? "var(--sev-high)"
       : occupancyPct >= 60
-      ? "#FB8C00"
-      : "#34c759";
+      ? "var(--sev-med)"
+      : "var(--sev-ok)";
 
   return L.divIcon({
     className: "",
@@ -122,7 +122,7 @@ export default function AdminMap({ racks, incidents, onSelectIncident }) {
         zoom={14}
         zoomControl={false}
         scrollWheelZoom
-        style={{ width: "100%", height: "100%", background: "#0a0d12" }}
+        style={{ width: "100%", height: "100%", background: "var(--admin-bg)" }}
       >
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -141,19 +141,19 @@ export default function AdminMap({ racks, incidents, onSelectIncident }) {
 
       <div className="admin-map__legend">
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "#E53935" }} />
+          <span className="legend-dot" style={{ background: "var(--sev-high)" }} />
           High
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "#FB8C00" }} />
+          <span className="legend-dot" style={{ background: "var(--sev-med)" }} />
           Medium
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "#FDB813" }} />
+          <span className="legend-dot" style={{ background: "var(--sev-low)" }} />
           Low
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "#3a4256" }} />
+          <span className="legend-dot" style={{ background: "var(--admin-text-muted)" }} />
           OK
         </span>
       </div>

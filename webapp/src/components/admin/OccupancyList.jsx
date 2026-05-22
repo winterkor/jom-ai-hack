@@ -63,10 +63,10 @@ export default function OccupancyList({ racks }) {
                       width: `${r._pct}%`,
                       background:
                         r._pct >= 90
-                          ? "var(--severity-high)"
+                          ? "var(--sev-high)"
                           : r._pct >= 60
-                          ? "var(--severity-med)"
-                          : "var(--ok)",
+                          ? "var(--sev-med)"
+                          : "var(--sev-ok)",
                     }}
                   />
                 </div>

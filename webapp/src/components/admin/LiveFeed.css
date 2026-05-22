@@ -16,12 +16,12 @@
   font: 700 11px/1 "Inter", sans-serif;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #e6e9ef;
+  color: var(--admin-text);
 }
 
 .livefeed__count {
   font: 600 11px/1 "Inter", sans-serif;
-  color: #8a93a6;
+  color: var(--admin-text-dim);
 }
 
 .livefeed__legend {
@@ -32,22 +32,22 @@
   font: 600 10px/1 "Inter", sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #34c759;
+  color: var(--sev-ok);
 }
 
 .livefeed__pulse {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #34c759;
-  box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6);
+  background: var(--sev-ok);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--sev-ok) 60%, transparent);
   animation: lf-pulse 1.6s ease-out infinite;
 }
 
 @keyframes lf-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.6); }
-  80%  { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sev-ok) 60%, transparent); }
+  80%  { box-shadow: 0 0 0 8px color-mix(in srgb, var(--sev-ok) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--sev-ok) 0%, transparent); }
 }
 
 .livefeed__strip {
@@ -57,13 +57,13 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
-  scrollbar-color: #2a3142 transparent;
+  scrollbar-color: var(--admin-line) transparent;
   flex: 1;
 }
 
 .livefeed__strip::-webkit-scrollbar { height: 8px; }
 .livefeed__strip::-webkit-scrollbar-thumb {
-  background: #2a3142;
+  background: var(--admin-line);
   border-radius: 4px;
 }
 
@@ -71,8 +71,8 @@
   flex: 0 0 180px;
   display: flex;
   flex-direction: column;
-  background: #0e1116;
-  border: 1px solid #262d3a;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-line);
   border-radius: 8px;
   padding: 0;
   color: inherit;
@@ -85,13 +85,13 @@
 
 .livefeed__card:hover {
   transform: translateY(-2px);
-  border-color: #4a8cff;
+  border-color: var(--admin-accent);
 }
 
 .livefeed__thumb {
   position: relative;
   height: 86px;
-  background: #1c2230 center/cover no-repeat;
+  background: var(--admin-panel-2) center/cover no-repeat;
 }
 
 .livefeed__pill {
@@ -106,7 +106,7 @@
 
 .livefeed__rack {
   font: 700 12px/1.2 "Inter", sans-serif;
-  color: #e6e9ef;
+  color: var(--admin-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -115,7 +115,7 @@
 .livefeed__type {
   margin-top: 2px;
   font: 500 11px/1.2 "Inter", sans-serif;
-  color: #8a93a6;
+  color: var(--admin-text-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -123,6 +123,6 @@
 
 .livefeed__empty {
   padding: 18px;
-  color: #8a93a6;
+  color: var(--admin-text-dim);
   font: 500 12px/1 "Inter", sans-serif;
 }

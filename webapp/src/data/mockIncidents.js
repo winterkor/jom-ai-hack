@@ -9,22 +9,22 @@
 export const INCIDENT_TYPES = {
   illegal_parking: {
     label: "Illegal parking",
-    color: "#E53935", // MRT red — high attention
+    color: "var(--sev-high)",
   },
   abandoned: {
     label: "Abandoned bike",
-    color: "#FB8C00", // MRT orange
+    color: "var(--sev-med)",
   },
   overflow: {
     label: "Rack overflow",
-    color: "#FDB813", // MRT yellow
+    color: "var(--sev-low)",
   },
 };
 
 export const SEVERITY = {
-  high: { label: "High", color: "#E53935", weight: 3 },
-  med: { label: "Medium", color: "#FB8C00", weight: 2 },
-  low: { label: "Low", color: "#FDB813", weight: 1 },
+  high: { label: "High", color: "var(--sev-high)", weight: 3 },
+  med: { label: "Medium", color: "var(--sev-med)", weight: 2 },
+  low: { label: "Low", color: "var(--sev-low)", weight: 1 },
 };
 
 const CV = "/cv/post_processed";
