@@ -88,12 +88,17 @@ export default function SidePanel({
         type="button"
         className="panel__nav"
         onClick={onStartNavigation}
-        disabled
-        title="Cycling navigation arrives in Ship 2B"
+        title={
+          userPos
+            ? "Draw a cycling route from your location"
+            : "We'll grab your location first"
+        }
       >
         <span className="panel__nav-arrow" aria-hidden="true">▸</span>
         <span className="panel__nav-main">START NAVIGATION</span>
-        <span className="panel__nav-tag">ROUTING · SHIP 2B</span>
+        <span className="panel__nav-tag">
+          {userPos ? "TAP TO ROUTE" : "WILL LOCATE FIRST"}
+        </span>
       </button>
 
       {/* ── EXPANDED (revealed on tap) ── */}

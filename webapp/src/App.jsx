@@ -10,6 +10,7 @@ import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
 import { fetchTampinesRacks } from "./data/ltaClient.js";
 import { findNearestAvailable } from "./data/geo.js";
+import { getCyclingRoute } from "./services/routing.js";
 import "./App.css";
 
 const ROLE_KEY = "jom-role";
@@ -85,6 +86,9 @@ export default function App() {
 
   // Imperative map-fly trigger: { lat, lng, zoom, key }
   const [flyTo, setFlyTo] = useState(null);
+
+  // Cycling route polyline coords [[lat,lng], ...] — null when no nav active
+  const [routeCoords, setRouteCoords] = useState(null);
 
   // Load LTA data on mount
   useEffect(() => {
@@ -162,6 +166,7 @@ export default function App() {
   const closePanel = () => {
     setSelectedRack(null);
     setPanelExpanded(false);
+    setRouteCoords(null);
   };
 
   // ── Find nearest available rack → detail card (no route yet) ──
@@ -193,8 +198,26 @@ export default function App() {
     }
   };
 
-  // Placeholder — real cycling navigation lands in Ship 2b (ORS).
-  const handleStartNavigation = () => {};
+  // Draw a cycling polyline from user → selected rack using OSRM's public bike
+  // profile. If the network call fails, fall back to a straight line so the
+  // demo always shows *something*.
+  const handleStartNavigation = async () => {
+    if (!selectedRack) return;
+    let from = userPos;
+    if (!from) {
+      from = await locateMe();
+      if (!from) return;
+    }
+    const to = { lat: selectedRack.lat, lng: selectedRack.lng };
+    const osrm = await getCyclingRoute(from, to);
+    const coords =
+      osrm?.coords || [
+        [from.lat, from.lng],
+        [to.lat, to.lng],
+      ];
+    setRouteCoords(coords);
+    setFlyTo({ bounds: coords, key: Date.now() });
+  };
 
   if (mode === "splash") {
     return <RoleSplash onPick={pickRole} />;
@@ -228,6 +251,7 @@ export default function App() {
         onSelectRack={showRackDetail}
         userPos={userPos}
         flyTo={flyTo}
+        routeCoords={routeCoords}
       />
 
       <SidePanel

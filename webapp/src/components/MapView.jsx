@@ -5,6 +5,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { getRackStatus, getAvailableSlots } from "../data/rackData.js";
+import RouteLayer from "./RouteLayer.jsx";
 import "./MapView.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
@@ -227,6 +228,7 @@ export default function MapView({
   onSelectRack,
   userPos,
   flyTo,
+  routeCoords,
 }) {
   return (
     <div className="mapview" data-focus={selectedRack ? "true" : "false"}>
@@ -256,7 +258,7 @@ export default function MapView({
 
         <DestinationMarker rack={selectedRack} />
 
-        {/* Route polyline removed — real cycling navigation lands in Ship 2b */}
+        <RouteLayer coords={routeCoords} />
 
         <FlyTo target={flyTo} />
       </MapContainer>
