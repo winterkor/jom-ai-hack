@@ -1,0 +1,113 @@
+.navexit {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 720;
+  background: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-body);
+  animation: navexit-in var(--dur) var(--ease-out);
+}
+
+@media (min-width: 721px) {
+  .navexit {
+    left: auto;
+    right: 16px;
+    width: 380px;
+  }
+}
+
+@keyframes navexit-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.navexit__info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.navexit__numeral {
+  font-family: var(--font-numeric);
+  font-size: 44px;
+  line-height: 0.9;
+  font-weight: 900;
+  color: var(--status-available);
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.navexit__unit {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.navexit__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.navexit__line {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--step-2);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navexit__sub {
+  font-family: var(--font-mono);
+  font-size: var(--step-0);
+  color: var(--status-available);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.navexit__btn {
+  appearance: none;
+  border: var(--border-w) solid var(--ink);
+  background: var(--status-full);
+  color: #FBF7EC;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step-2);
+  letter-spacing: 0.1em;
+  padding: 12px 22px;
+  cursor: pointer;
+  box-shadow: var(--shadow-flat-sm);
+  transition: transform var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.navexit__btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.navexit__btn:active {
+  transform: translate(1px, 1px);
+  box-shadow: var(--shadow-press);
+}

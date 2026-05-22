@@ -90,14 +90,14 @@ export default function SidePanel({
         onClick={onStartNavigation}
         title={
           userPos
-            ? "Draw a cycling route from your location"
+            ? "Preview a cycling route from your location"
             : "We'll grab your location first"
         }
       >
         <span className="panel__nav-arrow" aria-hidden="true">▸</span>
-        <span className="panel__nav-main">START NAVIGATION</span>
+        <span className="panel__nav-main">PREVIEW ROUTE</span>
         <span className="panel__nav-tag">
-          {userPos ? "TAP TO ROUTE" : "WILL LOCATE FIRST"}
+          {userPos ? "TAP TO PREVIEW" : "WILL LOCATE FIRST"}
         </span>
       </button>
 

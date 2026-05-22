@@ -5,6 +5,9 @@ import SidePanel from "./components/SidePanel.jsx";
 import Legend from "./components/Legend.jsx";
 import SearchBar from "./components/SearchBar.jsx";
 import FAB from "./components/FAB.jsx";
+import NavPreviewCard from "./components/NavPreviewCard.jsx";
+import NavBanner from "./components/NavBanner.jsx";
+import NavExitBar from "./components/NavExitBar.jsx";
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
@@ -87,8 +90,11 @@ export default function App() {
   // Imperative map-fly trigger: { lat, lng, zoom, key }
   const [flyTo, setFlyTo] = useState(null);
 
-  // Cycling route polyline coords [[lat,lng], ...] — null when no nav active
-  const [routeCoords, setRouteCoords] = useState(null);
+  // Navigation state machine — 'idle' (no route), 'preview' (route fetched,
+  // showing preview card), 'active' (Start tapped, turn banner + exit bar).
+  // navRoute holds the full OSRM response so child UI can read steps[]/etc.
+  const [navState, setNavState] = useState("idle");
+  const [navRoute, setNavRoute] = useState(null);
 
   // Load LTA data on mount
   useEffect(() => {
@@ -166,7 +172,8 @@ export default function App() {
   const closePanel = () => {
     setSelectedRack(null);
     setPanelExpanded(false);
-    setRouteCoords(null);
+    setNavState("idle");
+    setNavRoute(null);
   };
 
   // ── Find nearest available rack → detail card (no route yet) ──
@@ -198,9 +205,9 @@ export default function App() {
     }
   };
 
-  // Draw a cycling polyline from user → selected rack using OSRM's public bike
-  // profile. If the network call fails, fall back to a straight line so the
-  // demo always shows *something*.
+  // PREVIEW step — fetch the OSRM route, drop into preview state. The
+  // preview card replaces the side panel; tap Start to enter active nav.
+  // Straight-line fallback if OSRM is unreachable so the demo never voids.
   const handleStartNavigation = async () => {
     if (!selectedRack) return;
     let from = userPos;
@@ -210,13 +217,42 @@ export default function App() {
     }
     const to = { lat: selectedRack.lat, lng: selectedRack.lng };
     const osrm = await getCyclingRoute(from, to);
-    const coords =
-      osrm?.coords || [
+    const fallback = {
+      coords: [
         [from.lat, from.lng],
         [to.lat, to.lng],
-      ];
-    setRouteCoords(coords);
-    setFlyTo({ bounds: coords, key: Date.now() });
+      ],
+      distanceM: Math.round(
+        // crude haversine in metres for the fallback label
+        Math.hypot(
+          (to.lat - from.lat) * 111000,
+          (to.lng - from.lng) * 111000 * Math.cos((from.lat * Math.PI) / 180),
+        ),
+      ),
+      durationS: 600,
+      steps: [
+        { instruction: "Head to destination", modifier: "straight", type: "depart", distance: 0, location: [from.lat, from.lng], name: "" },
+        { instruction: "Arrive at destination", modifier: "straight", type: "arrive", distance: 0, location: [to.lat, to.lng], name: "" },
+      ],
+    };
+    const route = osrm || fallback;
+    setNavRoute(route);
+    setNavState("preview");
+    setFlyTo({ bounds: route.coords, key: Date.now() });
+  };
+
+  // ACTIVE — user pressed Start on the preview card. Frame the route tight.
+  const handleStartActive = () => {
+    if (!navRoute) return;
+    setNavState("active");
+    setFlyTo({ bounds: navRoute.coords, key: Date.now() });
+  };
+
+  // EXIT — clear the route, drop back to idle. Keeps the selected rack so
+  // the user can re-preview if they want.
+  const handleExitNav = () => {
+    setNavState("idle");
+    setNavRoute(null);
   };
 
   if (mode === "splash") {
@@ -234,8 +270,20 @@ export default function App() {
     );
   }
 
+  const isPreview = navState === "preview";
+  const isActive = navState === "active";
+  const isNavving = isPreview || isActive;
+
+  const firstStep = navRoute?.steps?.[0];
+  const nextStep = navRoute?.steps?.[1];
+
   return (
-    <div className={`app grain${selectedRack ? " app--panel-open" : ""}`}>
+    <div
+      className={`app grain${selectedRack ? " app--panel-open" : ""}${
+        isNavving ? " app--nav" : ""
+      }`}
+      data-nav-state={navState}
+    >
       <Header
         racksOnline={racks.length}
         availableSlots={availableCount}
@@ -243,7 +291,13 @@ export default function App() {
         onHome={goSplash}
       />
 
-      <SearchBar racks={racks} onSelectResult={handleSearchPick} />
+      {/* SearchBar hides during active nav (banner replaces it). Preview
+          keeps search visible so users can re-pick a destination. */}
+      {!isActive && <SearchBar racks={racks} onSelectResult={handleSearchPick} />}
+
+      {isActive && (
+        <NavBanner step={firstStep} nextStep={nextStep} />
+      )}
 
       <MapView
         racks={racks}
@@ -251,26 +305,46 @@ export default function App() {
         onSelectRack={showRackDetail}
         userPos={userPos}
         flyTo={flyTo}
-        routeCoords={routeCoords}
+        routeCoords={navRoute?.coords || null}
       />
 
-      <SidePanel
-        rack={selectedRack}
-        userPos={userPos}
-        expanded={panelExpanded}
-        onToggleExpand={() => setPanelExpanded((v) => !v)}
-        onClose={closePanel}
-        onStartNavigation={handleStartNavigation}
-      />
+      {/* SidePanel only when not in nav flow — preview/active have their
+          own bottom UI that replaces it. */}
+      {!isNavving && (
+        <SidePanel
+          rack={selectedRack}
+          userPos={userPos}
+          expanded={panelExpanded}
+          onToggleExpand={() => setPanelExpanded((v) => !v)}
+          onClose={closePanel}
+          onStartNavigation={handleStartNavigation}
+        />
+      )}
 
-      <Legend />
+      {isPreview && (
+        <NavPreviewCard
+          route={navRoute}
+          rack={selectedRack}
+          onStart={handleStartActive}
+          onCancel={handleExitNav}
+        />
+      )}
 
-      <FAB
-        onFindNearest={handleFindNearest}
-        onLocate={handleLocate}
-        busy={locating}
-        hasUserPos={!!userPos}
-      />
+      {isActive && (
+        <NavExitBar route={navRoute} onExit={handleExitNav} />
+      )}
+
+      {/* Legend + FAB only in idle — nav UI claims the chrome. */}
+      {!isNavving && <Legend />}
+
+      {!isNavving && (
+        <FAB
+          onFindNearest={handleFindNearest}
+          onLocate={handleLocate}
+          busy={locating}
+          hasUserPos={!!userPos}
+        />
+      )}
     </div>
   );
 }
