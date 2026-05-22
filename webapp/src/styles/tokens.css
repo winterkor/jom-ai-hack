@@ -22,6 +22,25 @@
   --hazard: #FFD93D;
   --navy: #1F2A44;
 
+  /* ── SEVERITY (semantic — used by maintainer view) ───
+     Aligned to the rider-app status palette so the
+     two surfaces speak the same color language. */
+  --sev-high: var(--status-full);          /* red    — needs action now */
+  --sev-med: var(--status-filling);        /* orange — keep an eye on */
+  --sev-low: var(--hazard);                /* yellow — informational */
+  --sev-ok: var(--status-available);       /* green  — clear */
+
+  /* ── ADMIN SURFACE (dark operator-console theme) ── */
+  --admin-bg: #0E1116;
+  --admin-panel: #161B22;
+  --admin-panel-2: #1C2230;
+  --admin-line: #262D3A;
+  --admin-text: #E6E9EF;
+  --admin-text-dim: #8A93A6;
+  --admin-text-muted: #6B748A;
+  --admin-accent: #4A8CFF;                 /* operator-mode blue */
+  --admin-accent-2: #B66DFF;               /* secondary accent */
+
   /* ── TYPE ──────────────────────────────────── */
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-numeric: "Big Shoulders Display", "Bricolage Grotesque", sans-serif;
