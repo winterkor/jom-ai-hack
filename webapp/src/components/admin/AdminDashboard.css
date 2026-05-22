@@ -262,8 +262,8 @@
   transition: width 240ms ease;
 }
 
-/* Responsive: collapse side panels into stacked sections below ~960px */
-@media (max-width: 960px) {
+/* Tablet (≤960px): keep grid but allow stacking. */
+@media (max-width: 960px) and (min-width: 721px) {
   .admin {
     grid-template-rows: 56px 1fr 140px;
   }
@@ -276,5 +276,54 @@
     border-left: none;
     border-right: none;
     border-bottom: 1px solid var(--admin-line);
+  }
+}
+
+/* Phone (≤720px): single scroll container — the grid scrolls as one
+   surface so nested touch-scroll conflicts go away. Each panel renders
+   at its natural height; map gets a fixed slot so it doesn't dominate. */
+@media (max-width: 720px) {
+  .admin {
+    grid-template-rows: 52px 1fr 116px;
+  }
+  .admin__grid {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin__left,
+  .admin__right {
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-line);
+    flex: 0 0 auto;
+    overflow: visible;        /* let the outer grid handle scroll */
+    max-height: none;
+  }
+  .admin__center {
+    flex: 0 0 280px;
+    min-height: 280px;
+  }
+  .panel-head {
+    position: static;         /* sticky inside a flex scroll is glitchy on iOS */
+    padding: 10px 14px 6px;
+  }
+  .panel-head__count {
+    font-size: 26px;
+  }
+  .panel-row {
+    padding: 10px 14px;
+  }
+  .admin__bottom {
+    padding: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin__center {
+    flex: 0 0 240px;
+    min-height: 240px;
   }
 }

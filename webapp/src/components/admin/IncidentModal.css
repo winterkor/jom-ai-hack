@@ -217,7 +217,41 @@
 }
 
 @media (max-width: 720px) {
+  .imodal {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .imodal__card {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: none;
+    animation: imodal-sheet-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes imodal-sheet-in {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: none; opacity: 1; }
+  }
   .imodal__body { grid-template-columns: 1fr; }
-  .imodal__images, .imodal__images--cmp { grid-template-columns: 1fr; border-right: none; border-bottom: 1px solid var(--admin-line); }
-  .imodal__row { grid-template-columns: 1fr; }
+  .imodal__images,
+  .imodal__images--cmp {
+    grid-template-columns: 1fr;
+    border-right: none;
+    border-bottom: 1px solid var(--admin-line);
+    padding: 12px;
+  }
+  .imodal__figure img { max-height: 220px; }
+  .imodal__row { grid-template-columns: 1fr; gap: 4px; }
+  .imodal__head { padding: 12px 14px; }
+  .imodal__title { font-size: 18px; }
+  .imodal__foot {
+    flex-wrap: wrap;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+  .imodal__actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: stretch;
+  }
+  .imodal__btn { flex: 1; }
 }

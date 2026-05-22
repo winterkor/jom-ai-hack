@@ -142,3 +142,24 @@
   .admin-nav__tab { padding: 6px 10px; font-size: 11px; }
   .admin-nav__data { display: none; }
 }
+
+@media (max-width: 420px) {
+  .admin-nav {
+    gap: 6px;
+    padding: 0 8px;
+    grid-template-columns: auto 1fr auto;
+  }
+  .admin-nav__logo { font-size: 14px; }
+  .admin-nav__tab { padding: 5px 8px; font-size: 10px; letter-spacing: 0.04em; }
+  .admin-nav__alerts {
+    padding: 4px 8px;
+    font-size: 10px;
+    gap: 5px;
+  }
+  .admin-nav__exit {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+  /* Hide the brand text on phones — logo still anchors identity. */
+  .admin-nav__brand { gap: 8px; }
+}

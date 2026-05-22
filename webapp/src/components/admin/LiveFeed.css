@@ -126,3 +126,14 @@
   color: var(--admin-text-dim);
   font: 500 12px/1 var(--font-body);
 }
+
+@media (max-width: 720px) {
+  .livefeed__head { padding: 0 12px 6px; gap: 10px; }
+  .livefeed__eyebrow { font-size: 10px; }
+  .livefeed__strip { padding: 0 12px 10px; gap: 8px; }
+  .livefeed__card { flex: 0 0 150px; }
+  .livefeed__thumb { height: 60px; }
+  .livefeed__meta { padding: 6px 8px 8px; }
+  .livefeed__rack { font-size: 11px; }
+  .livefeed__type { font-size: 10px; }
+}
