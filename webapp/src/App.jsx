@@ -86,11 +86,6 @@ export default function App() {
   // Imperative map-fly trigger: { lat, lng, zoom, key }
   const [flyTo, setFlyTo] = useState(null);
 
-  // Zone polygon features (park + no-park) once ZonesLayer has loaded them.
-  // Consumed by task #4's inside-zone detection.
-  // eslint-disable-next-line no-unused-vars
-  const [zonesFeatures, setZonesFeatures] = useState([]);
-
   // Load LTA data on mount
   useEffect(() => {
     let cancelled = false;
@@ -233,7 +228,6 @@ export default function App() {
         onSelectRack={showRackDetail}
         userPos={userPos}
         flyTo={flyTo}
-        onZonesLoaded={setZonesFeatures}
       />
 
       <SidePanel
