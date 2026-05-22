@@ -54,6 +54,12 @@
   overflow: hidden;
 }
 
+/* Hero stat strip + bottom tab bar — phone-only, hidden on tablet/desktop. */
+.admin__hero,
+.admin__tabbar {
+  display: none;
+}
+
 /* Panel header conventions reused by IncidentList + OccupancyList */
 .panel-head {
   position: sticky;
@@ -279,51 +285,164 @@
   }
 }
 
-/* Phone (≤720px): single scroll container — the grid scrolls as one
-   surface so nested touch-scroll conflicts go away. Each panel renders
-   at its natural height; map gets a fixed slot so it doesn't dominate. */
+/* Phone (≤720px): bottom-tab phone layout.
+   - Hero stat strip up top
+   - One pane visible at a time (Incidents / Map / Racks)
+   - Fixed bottom tab bar
+   - LiveFeed footer hidden (operator focus stays in active tab) */
 @media (max-width: 720px) {
   .admin {
-    grid-template-rows: 52px 1fr 116px;
+    /* nav · hero · active pane · tab bar */
+    grid-template-rows: 52px 44px 1fr 56px;
   }
-  .admin__grid {
+
+  .admin__hero {
     display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-  .admin__left,
-  .admin__right {
-    border-left: none;
-    border-right: none;
+    align-items: baseline;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 14px;
     border-bottom: 1px solid var(--admin-line);
-    flex: 0 0 auto;
-    overflow: visible;        /* let the outer grid handle scroll */
-    max-height: none;
+    background: var(--admin-panel);
+    overflow: hidden;
   }
-  .admin__center {
-    flex: 0 0 280px;
-    min-height: 280px;
+
+  .admin__hero-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    min-width: 0;
   }
+
+  .admin__hero-num {
+    font: 800 18px/1 var(--font-numeric);
+    color: var(--admin-text);
+  }
+
+  .admin__hero-num--alert {
+    color: var(--sev-high);
+  }
+
+  .admin__hero-label {
+    font: 700 9px/1 var(--font-display);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--admin-text-dim);
+  }
+
+  .admin__hero-sep {
+    color: var(--admin-text-dim);
+    opacity: 0.5;
+    font-size: 10px;
+  }
+
+  /* Grid becomes the active-pane viewport — only one pane shows. */
+  .admin__grid {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    min-height: 0;
+    grid-template-columns: 1fr;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .admin__pane {
+    display: none;
+    border: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  .admin__pane.is-active {
+    display: block;
+  }
+
+  /* Map pane needs the inner map root to stretch. */
+  .admin__center.admin__pane.is-active {
+    display: block;
+    position: relative;
+    overflow: hidden;       /* map handles its own gestures */
+  }
+
+  /* LiveFeed footer hidden on phone — Phase 3 decision. */
+  .admin__bottom {
+    display: none;
+  }
+
   .panel-head {
-    position: static;         /* sticky inside a flex scroll is glitchy on iOS */
+    position: sticky;       /* safe again now that each pane scrolls itself */
+    top: 0;
     padding: 10px 14px 6px;
   }
+
   .panel-head__count {
     font-size: 26px;
   }
+
   .panel-row {
     padding: 10px 14px;
   }
-  .admin__bottom {
-    padding: 0;
+
+  /* Bottom tab bar */
+  .admin__tabbar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--admin-panel);
+    border-top: 1px solid var(--admin-line);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .admin__tab {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+    background: transparent;
+    border: none;
+    border-top: 2px solid transparent;
+    color: var(--admin-text-dim);
+    font: 700 11px/1 var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+
+  .admin__tab.is-active {
+    color: var(--admin-accent);
+    border-top-color: var(--admin-accent);
+  }
+
+  .admin__tab-badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--sev-high);
+    color: #fff;
+    font: 800 10px/1 var(--font-numeric);
+    letter-spacing: 0;
   }
 }
 
 @media (max-width: 420px) {
-  .admin__center {
-    flex: 0 0 240px;
-    min-height: 240px;
+  .admin__hero {
+    gap: 6px;
+    padding: 5px 10px;
+  }
+  .admin__hero-num {
+    font-size: 16px;
+  }
+  .admin__tab {
+    font-size: 10px;
+    letter-spacing: 0.08em;
   }
 }
