@@ -1,96 +1,97 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import {
-  SEVERITY,
-  highestSeverity,
-  openIncidents,
-} from "../../data/mockIncidents.js";
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import { getRackStatus, getAvailableSlots } from "../../data/rackData.js";
+import "../MapView.css";
 import "./AdminMap.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
 
-function buildRackIcon({ severity, count, occupancyPct }) {
-  const sevColor = severity ? SEVERITY[severity].color : "var(--admin-text-muted)";
-  const pulse = severity === "high" ? " admin-pin--pulse" : "";
-  const ringColor =
-    occupancyPct >= 90
-      ? "var(--sev-high)"
-      : occupancyPct >= 60
-      ? "var(--sev-med)"
-      : "var(--sev-ok)";
+// Mirrors MapView's rack chip so the maintainer surface speaks the same
+// visual language as the rider app — no click, view-only.
+function buildIcon(rack) {
+  const status = getRackStatus(rack);
+  const available = getAvailableSlots(rack);
+  const code = rack.id.split("-").pop() || "";
+  const displayCode = code.length > 2 ? code.slice(-2) : code;
 
   return L.divIcon({
-    className: "",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    className: "rack-marker-wrap",
+    iconSize: [56, 64],
+    iconAnchor: [28, 64],
     html: `
-      <div class="admin-pin${pulse}" style="--pin: ${sevColor}; --ring: ${ringColor};">
-        <span class="admin-pin__core"></span>
-        ${count > 0 ? `<span class="admin-pin__badge">${count}</span>` : ""}
+      <div class="rack-marker" data-status="${status}" data-compact="false">
+        <div class="rack-marker__stripe"></div>
+        <div class="rack-marker__code">${displayCode}</div>
+        <div class="rack-marker__chip">${available}</div>
+        <div class="rack-marker__tail"></div>
       </div>
     `,
   });
 }
 
-function MarkersLayer({ racks, incidentsByRackId, onSelectIncident }) {
+function buildClusterIcon(cluster) {
+  const children = cluster.getAllChildMarkers();
+  let totalAvail = 0;
+  const statusCounts = { available: 0, filling: 0, full: 0 };
+
+  for (const m of children) {
+    const rack = m.options.rackData;
+    if (!rack) continue;
+    totalAvail += getAvailableSlots(rack);
+    statusCounts[getRackStatus(rack)] += 1;
+  }
+  const dominant = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
+
+  return L.divIcon({
+    className: "rack-cluster-wrap",
+    iconSize: [62, 62],
+    iconAnchor: [31, 31],
+    html: `
+      <div class="rack-cluster" data-status="${dominant}" data-compact="false">
+        <div class="rack-cluster__stripe"></div>
+        <div class="rack-cluster__count">${children.length}</div>
+        <div class="rack-cluster__free">${totalAvail} FREE</div>
+      </div>
+    `,
+  });
+}
+
+function RackLayer({ racks }) {
   const map = useMap();
-  const layerRef = useRef(null);
+  const groupRef = useRef(null);
 
   useEffect(() => {
-    if (!map) return;
-    if (!layerRef.current) {
-      layerRef.current = L.layerGroup().addTo(map);
-    } else {
-      layerRef.current.clearLayers();
-    }
+    const group = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      removeOutsideVisibleBounds: true,
+      maxClusterRadius: 55,
+      disableClusteringAtZoom: 18,
+      iconCreateFunction: buildClusterIcon,
+    });
 
-    for (const rack of racks) {
-      const incs = incidentsByRackId.get(rack.id) || [];
-      const open = incs.filter((i) => i.status === "open");
-      const sev = highestSeverity(open);
-      const occupancyPct =
-        rack.totalSlots > 0
-          ? Math.round((rack.occupiedSlots / rack.totalSlots) * 100)
-          : 0;
-
-      const icon = buildRackIcon({
-        severity: sev,
-        count: open.length,
-        occupancyPct,
+    racks.forEach((rack) => {
+      const marker = L.marker([rack.lat, rack.lng], {
+        icon: buildIcon(rack),
+        rackData: rack,
+        interactive: false,
+        keyboard: false,
       });
+      group.addLayer(marker);
+    });
 
-      const marker = L.marker([rack.lat, rack.lng], { icon });
-      const title = `${rack.name}`;
-      const sub = sev
-        ? `${open.length} open · sev ${SEVERITY[sev].label}`
-        : `${occupancyPct}% occupied`;
-      marker.bindTooltip(`<strong>${title}</strong><br/><span>${sub}</span>`, {
-        direction: "top",
-        offset: [0, -10],
-        className: "admin-tooltip",
-      });
-
-      if (open.length > 0) {
-        marker.on("click", () => {
-          // pick highest severity, then most recent
-          const sorted = [...open].sort((a, b) => {
-            const dw = SEVERITY[b.severity].weight - SEVERITY[a.severity].weight;
-            if (dw !== 0) return dw;
-            return new Date(b.detectedAt) - new Date(a.detectedAt);
-          });
-          onSelectIncident(sorted[0].id);
-        });
-      }
-
-      marker.addTo(layerRef.current);
-    }
+    map.addLayer(group);
+    groupRef.current = group;
 
     return () => {
-      if (layerRef.current) layerRef.current.clearLayers();
+      map.removeLayer(group);
+      groupRef.current = null;
     };
-  }, [map, racks, incidentsByRackId, onSelectIncident]);
+  }, [map, racks]);
 
   return null;
 }
@@ -105,16 +106,7 @@ function FitBounds({ racks }) {
   return null;
 }
 
-export default function AdminMap({ racks, incidents, onSelectIncident }) {
-  const incidentsByRackId = useMemo(() => {
-    const m = new Map();
-    for (const inc of openIncidents(incidents)) {
-      if (!m.has(inc.rackId)) m.set(inc.rackId, []);
-      m.get(inc.rackId).push(inc);
-    }
-    return m;
-  }, [incidents]);
-
+export default function AdminMap({ racks }) {
   return (
     <div className="admin-map">
       <MapContainer
@@ -122,39 +114,35 @@ export default function AdminMap({ racks, incidents, onSelectIncident }) {
         zoom={14}
         zoomControl={false}
         scrollWheelZoom
-        style={{ width: "100%", height: "100%", background: "var(--admin-bg)" }}
+        style={{ width: "100%", height: "100%", background: "var(--admin-panel-2)" }}
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; OpenStreetMap &copy; CARTO'
           subdomains="abcd"
           maxZoom={19}
         />
         <ZoomControl position="bottomright" />
         <FitBounds racks={racks} />
-        <MarkersLayer
-          racks={racks}
-          incidentsByRackId={incidentsByRackId}
-          onSelectIncident={onSelectIncident}
-        />
+        <RackLayer racks={racks} />
       </MapContainer>
 
       <div className="admin-map__legend">
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--sev-high)" }} />
-          High
+          <span className="legend-dot" style={{ background: "var(--status-available)" }} />
+          Available
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--sev-med)" }} />
-          Medium
+          <span className="legend-dot" style={{ background: "var(--status-filling)" }} />
+          Filling
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--sev-low)" }} />
-          Low
+          <span className="legend-dot" style={{ background: "var(--status-full)" }} />
+          Full
         </span>
         <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--admin-text-muted)" }} />
-          OK
+          <span className="legend-dot" style={{ background: "var(--status-offline)" }} />
+          Offline
         </span>
       </div>
     </div>

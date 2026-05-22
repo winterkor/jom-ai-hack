@@ -30,16 +30,18 @@
   --sev-low: var(--hazard);                /* yellow — informational */
   --sev-ok: var(--status-available);       /* green  — clear */
 
-  /* ── ADMIN SURFACE (dark operator-console theme) ── */
-  --admin-bg: #0E1116;
-  --admin-panel: #161B22;
-  --admin-panel-2: #1C2230;
-  --admin-line: #262D3A;
-  --admin-text: #E6E9EF;
-  --admin-text-dim: #8A93A6;
-  --admin-text-muted: #6B748A;
-  --admin-accent: #4A8CFF;                 /* operator-mode blue */
-  --admin-accent-2: #B66DFF;               /* secondary accent */
+  /* ── ADMIN SURFACE (light operator-console theme, user-aligned) ──
+     Hybrid: shares the rider app's paper/ink DNA but keeps a cooler,
+     denser feel so dashboards still read as operator chrome. */
+  --admin-bg: #F4F1E7;                     /* cooler paper than --paper */
+  --admin-panel: #FFFFFF;                  /* card surface */
+  --admin-panel-2: #FAF7EC;                /* secondary surface (footers, bands) */
+  --admin-line: #E0D9C5;                   /* warm gray border */
+  --admin-text: var(--ink);
+  --admin-text-dim: var(--ink-mute);       /* #6B6258 */
+  --admin-text-muted: #8E8678;
+  --admin-accent: #1F2A44;                 /* navy — readable on white */
+  --admin-accent-2: #7A4DD0;               /* muted purple secondary */
 
   /* ── TYPE ──────────────────────────────────── */
   --font-display: "Bricolage Grotesque", system-ui, sans-serif;

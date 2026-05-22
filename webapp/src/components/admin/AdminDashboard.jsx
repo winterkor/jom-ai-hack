@@ -62,11 +62,7 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
         </aside>
 
         <main className="admin__center">
-          <AdminMap
-            racks={racks}
-            incidents={incidents}
-            onSelectIncident={setSelectedId}
-          />
+          <AdminMap racks={racks} />
         </main>
 
         <aside className="admin__right">

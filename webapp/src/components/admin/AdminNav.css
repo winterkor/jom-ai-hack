@@ -4,10 +4,10 @@
   align-items: center;
   gap: 24px;
   padding: 0 18px;
-  background: linear-gradient(180deg, #11151c 0%, var(--admin-bg) 100%);
-  border-bottom: 1px solid var(--admin-panel-2);
+  background: linear-gradient(180deg, var(--admin-panel) 0%, var(--admin-bg) 100%);
+  border-bottom: 1px solid var(--admin-line);
   color: var(--admin-text);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 .admin-nav__brand {
@@ -17,7 +17,7 @@
 }
 
 .admin-nav__logo {
-  font: 800 17px/1 "Inter", sans-serif;
+  font: 800 17px/1 var(--font-display);
   letter-spacing: 0.08em;
   background: linear-gradient(135deg, var(--admin-accent), var(--admin-accent-2));
   -webkit-background-clip: text;
@@ -29,7 +29,7 @@
 }
 
 .admin-nav__logo:hover {
-  filter: brightness(1.2);
+  filter: brightness(1.15);
 }
 
 .admin-nav__divider {
@@ -39,7 +39,7 @@
 }
 
 .admin-nav__mode {
-  font: 600 11px/1 "Inter", sans-serif;
+  font: 700 11px/1 var(--font-display);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--admin-text-dim);
@@ -57,7 +57,7 @@
   border: none;
   border-radius: 6px;
   color: var(--admin-text-dim);
-  font: 600 12px/1 "Inter", sans-serif;
+  font: 700 12px/1 var(--font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
@@ -66,12 +66,12 @@
 
 .admin-nav__tab:hover:not(:disabled) {
   color: var(--admin-text);
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 
 .admin-nav__tab--active {
-  color: #fff;
-  background: color-mix(in srgb, var(--admin-accent) 16%, transparent);
+  color: var(--admin-accent);
+  background: color-mix(in srgb, var(--admin-accent) 10%, transparent);
   box-shadow: inset 0 -2px 0 var(--admin-accent);
 }
 
@@ -91,12 +91,12 @@
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: color-mix(in srgb, var(--sev-high) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sev-high) 30%, transparent);
+  background: color-mix(in srgb, var(--sev-high) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sev-high) 36%, transparent);
   border-radius: 999px;
-  font: 700 11px/1 "Inter", sans-serif;
+  font: 800 11px/1 var(--font-display);
   letter-spacing: 0.06em;
-  color: var(--status-full-soft);
+  color: var(--sev-high);
 }
 
 .admin-nav__dot {
@@ -108,7 +108,7 @@
 }
 
 .admin-nav__data {
-  font: 700 10px/1 "Inter", sans-serif;
+  font: 800 10px/1 var(--font-display);
   letter-spacing: 0.14em;
   padding: 5px 9px;
   border-radius: 4px;
@@ -118,7 +118,7 @@
 
 .admin-nav__data[data-state="live"] {
   color: var(--sev-ok);
-  border-color: color-mix(in srgb, var(--sev-ok) 40%, transparent);
+  border-color: color-mix(in srgb, var(--sev-ok) 50%, transparent);
 }
 
 .admin-nav__exit {
@@ -127,13 +127,13 @@
   border: 1px solid var(--admin-line);
   border-radius: 6px;
   padding: 7px 12px;
-  font: 600 12px/1 "Inter", sans-serif;
+  font: 700 12px/1 var(--font-display);
   cursor: pointer;
   transition: background 120ms ease;
 }
 
 .admin-nav__exit:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
 }
 
 @media (max-width: 720px) {
