@@ -5,6 +5,7 @@ import SidePanel from "./components/SidePanel.jsx";
 import Legend from "./components/Legend.jsx";
 import SearchBar from "./components/SearchBar.jsx";
 import FAB from "./components/FAB.jsx";
+import DemoControl from "./components/DemoControl.jsx";
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
@@ -253,6 +254,8 @@ export default function App() {
         busy={locating}
         hasUserPos={!!userPos}
       />
+
+      <DemoControl onPosition={setUserPos} />
     </div>
   );
 }

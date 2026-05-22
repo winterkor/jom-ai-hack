@@ -1,0 +1,108 @@
+/* Stage-prop styling — visually distinct from production rider UI so the
+   demo audience reads it as a control surface, not a feature. Uses the
+   admin-accent magenta to break from the rider's MRT-line palette. */
+
+.demo-control {
+  position: fixed;
+  bottom: 24px;
+  left: 16px;
+  z-index: 500;
+  background: var(--ink);
+  color: var(--card);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-flat);
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 168px;
+  animation: demo-control-in 600ms 600ms var(--ease-out) both;
+}
+
+@keyframes demo-control-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.demo-control__label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--admin-accent-2);
+  font-weight: 700;
+}
+
+.demo-control__row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.demo-control__btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  background: var(--admin-accent-2);
+  color: var(--ink);
+  border: var(--border-w) solid var(--ink);
+  padding: 6px 10px;
+  cursor: pointer;
+  flex: 1;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.demo-control__btn--alt {
+  background: var(--sev-high);
+  color: var(--card);
+}
+
+.demo-control__btn--ghost {
+  background: transparent;
+  color: var(--card);
+  flex: 0 0 32px;
+  font-size: 14px;
+}
+
+.demo-control__btn:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+}
+
+.demo-control__btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+.demo-control__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.demo-control__progress {
+  height: 4px;
+  background: var(--admin-line);
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.demo-control__progress-fill {
+  height: 100%;
+  background: var(--admin-accent-2);
+  transition: width var(--dur) var(--ease-out);
+}
+
+.demo-control[data-state="finished"] .demo-control__progress-fill {
+  background: var(--sev-ok);
+}
+
+@media (max-width: 720px) {
+  .demo-control {
+    bottom: 220px; /* clear the peek bottom sheet */
+    min-width: 152px;
+  }
+}
