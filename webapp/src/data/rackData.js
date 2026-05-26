@@ -1,15 +1,13 @@
 // Rack data — single source of truth for rack records used by the app.
 //
-// At runtime the app fetches real Tampines racks from LTA DataMall (see
-// `ltaClient.js`) and layers simulated occupancy on top (see `occupancySim.js`).
-// The mock array below is used as:
-//   - the offline / no-key fallback
-//   - the loading state placeholder before the LTA fetch resolves
-//
-// TODO: When the ESP32 backend is live, swap simulateOccupiedSlots() for a real
-// `occupiedSlots` value supplied by the sensor feed.
+// Primary source is `ltaRacks.geojson` (real LTA capacity data, pre-filtered
+// to the Tampines + Upper Changi bbox from niclukman's tamp-hackathon-backend
+// repo). The mock array remains as the offline / load-failure fallback.
 
 import { simulateOccupiedSlots } from "./occupancySim.js";
+import ltaGeoRaw from "./ltaRacks.geojson?raw";
+
+const ltaGeo = JSON.parse(ltaGeoRaw);
 
 // Each rack record used by the app:
 // { id, name, address, lat, lng, totalSlots, occupiedSlots,
@@ -119,8 +117,47 @@ export const mockRacks = [
 ];
 
 /**
- * Convert an LTA DataMall BicycleParking record into our app's rack shape,
- * with simulated occupancy applied.
+ * Convert a feature from niclukman's static LTA geojson into our app's rack
+ * shape, with simulated occupancy applied (no real sensor source exists yet).
+ */
+export function adaptLtaGeoFeature(feature, index, now = new Date()) {
+  const props = feature.properties || {};
+  const [lng, lat] = feature.geometry.coordinates;
+  const total = Math.max(1, Number(props.count) || 10);
+  // Build a minimal LTA-shaped record so simulateOccupiedSlots() — keyed on
+  // Description — still produces a stable pseudo-occupancy per rack.
+  const occupied = simulateOccupiedSlots(
+    { Description: props.description || `lta-${index}`, RackCount: total },
+    now,
+  );
+  const idNum = String(index + 1).padStart(3, "0");
+  return {
+    id: `lta-${idNum}`,
+    name: props.description?.trim() || "Bicycle Rack",
+    address: props.description?.trim() || "Tampines, Singapore",
+    lat,
+    lng,
+    totalSlots: total,
+    occupiedSlots: occupied,
+    rackType: props.type || "UNKNOWN",
+    shelter: !!props.sheltered,
+    source: "lta",
+  };
+}
+
+/**
+ * Synchronously load and adapt the bundled LTA geojson into rack records.
+ * Returns an array of racks ready to drop into app state.
+ */
+export function loadLtaRacks(now = new Date()) {
+  const features = ltaGeo?.features || [];
+  return features.map((f, i) => adaptLtaGeoFeature(f, i, now));
+}
+
+/**
+ * Legacy adapter for the LTA DataMall live JSON (RackCount/Latitude/etc).
+ * Retained so the runtime fallback in `ltaClient.js` keeps working if the
+ * static geojson load ever fails.
  */
 export function adaptLtaRack(ltaRack, index, now = new Date()) {
   const total = ltaRack.RackCount || 10;

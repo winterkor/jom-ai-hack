@@ -11,9 +11,9 @@ import NavExitBar from "./components/NavExitBar.jsx";
 import ParkingConfirmCard from "./components/ParkingConfirmCard.jsx";
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import RoleSplash from "./components/RoleSplash.jsx";
-import { mockRacks, adaptLtaRack, getRackStatus } from "./data/rackData.js";
+import { mockRacks, adaptLtaRack, loadLtaRacks, getRackStatus } from "./data/rackData.js";
 import { fetchTampinesRacks } from "./data/ltaClient.js";
-import { findNearestAvailable } from "./data/geo.js";
+import { findNearestAvailable, topKNearestAvailable } from "./data/geo.js";
 import { getCyclingRoute } from "./services/routing.js";
 import "./App.css";
 
@@ -98,9 +98,21 @@ export default function App() {
   const [navState, setNavState] = useState("idle");
   const [navRoute, setNavRoute] = useState(null);
 
-  // Load LTA data on mount
+  // Load bundled LTA geojson on mount; fall back to the LTA DataMall live
+  // fetch (which itself falls back to mocks) if the static load somehow fails.
   useEffect(() => {
     let cancelled = false;
+    try {
+      const geoRacks = loadLtaRacks();
+      if (geoRacks.length > 0) {
+        setRacks(geoRacks);
+        setDataState("live");
+        return undefined;
+      }
+    } catch (err) {
+      console.warn("LTA geojson load failed:", err.message);
+    }
+
     (async () => {
       try {
         const ltaRacks = await fetchTampinesRacks();
@@ -109,7 +121,7 @@ export default function App() {
         setRacks(adapted);
         setDataState("live");
       } catch (err) {
-        console.warn("LTA fetch failed, using mocks:", err.message);
+        console.warn("LTA DataMall fallback failed, using mocks:", err.message);
         if (!cancelled) setDataState("mock");
       }
     })();
@@ -179,14 +191,30 @@ export default function App() {
   };
 
   // ── Find nearest available rack → detail card (no route yet) ──
+  // Picks the rack with the shortest *cycling-route* distance, not the
+  // shortest straight-line distance. We narrow to the top-K closest as the
+  // crow flies (cheap), then route each via OSRM and pick the true winner.
   const handleFindNearest = async () => {
     let origin = userPos;
     if (!origin) {
       origin = (await locateMe()) || TAMPINES_CENTER;
     }
-    const result = findNearestAvailable(origin, racks, getRackStatus);
-    if (!result) return; // every rack full — handled in Ship 2b
-    showRackDetail(result.rack);
+    const candidates = topKNearestAvailable(origin, racks, getRackStatus, 6);
+    if (candidates.length === 0) return;
+
+    const routed = await Promise.all(
+      candidates.map(async ({ rack, distanceKm }) => {
+        const route = await getCyclingRoute(origin, { lat: rack.lat, lng: rack.lng });
+        return { rack, route, fallbackKm: distanceKm };
+      }),
+    );
+    const withRoutes = routed.filter((r) => r.route);
+    const winner = withRoutes.length > 0
+      ? withRoutes.sort((a, b) => a.route.distanceM - b.route.distanceM)[0]
+      // All route lookups failed → fall back to straight-line winner.
+      : routed.sort((a, b) => a.fallbackKm - b.fallbackKm)[0];
+    if (!winner) return;
+    showRackDetail(winner.rack);
   };
 
   // ── Search pick: rack → detail; place → nearest rack → detail ──
@@ -284,16 +312,28 @@ export default function App() {
     setNavState("parked");
   };
 
-  const handleFindAnother = () => {
+  const handleFindAnother = async () => {
     const origin = userPos || (selectedRack
       ? { lat: selectedRack.lat, lng: selectedRack.lng }
       : TAMPINES_CENTER);
     const excludeId = selectedRack?.id;
-    const candidates = racks.filter((r) => r.id !== excludeId);
-    const result = findNearestAvailable(origin, candidates, getRackStatus);
+    const pool = racks.filter((r) => r.id !== excludeId);
+    const candidates = topKNearestAvailable(origin, pool, getRackStatus, 6);
     setNavState("idle");
     setNavRoute(null);
-    if (result) showRackDetail(result.rack);
+    if (candidates.length === 0) return;
+
+    const routed = await Promise.all(
+      candidates.map(async ({ rack, distanceKm }) => {
+        const route = await getCyclingRoute(origin, { lat: rack.lat, lng: rack.lng });
+        return { rack, route, fallbackKm: distanceKm };
+      }),
+    );
+    const withRoutes = routed.filter((r) => r.route);
+    const winner = withRoutes.length > 0
+      ? withRoutes.sort((a, b) => a.route.distanceM - b.route.distanceM)[0]
+      : routed.sort((a, b) => a.fallbackKm - b.fallbackKm)[0];
+    if (winner) showRackDetail(winner.rack);
   };
 
   const handleParkedDone = () => {

@@ -12,7 +12,7 @@ export default function ParkingConfirmCard({
 
   const available = getAvailableSlots(rack);
   const total = rack.totalSlots;
-  const code = rack.id.replace("TPN-", "");
+  const code = rack.id.replace(/^(TPN-|lta-)/, "");
   const isParked = state === "parked";
 
   return (

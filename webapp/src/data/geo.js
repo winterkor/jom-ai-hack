@@ -31,6 +31,7 @@ export function formatDistance(km) {
 /**
  * Given an origin and a list of racks, return the closest one whose status
  * is not "full". Returns null if every rack is full or the list is empty.
+ * Pure / synchronous — uses straight-line distance.
  */
 export function findNearestAvailable(origin, racks, getStatus) {
   let best = null;
@@ -44,4 +45,19 @@ export function findNearestAvailable(origin, racks, getStatus) {
     }
   }
   return best ? { rack: best, distanceKm: bestKm } : null;
+}
+
+/**
+ * Top-K available racks by straight-line distance — used to pre-filter
+ * candidates before scoring them by actual cycling route distance.
+ */
+export function topKNearestAvailable(origin, racks, getStatus, k = 6) {
+  return racks
+    .filter((r) => getStatus(r) !== "full")
+    .map((r) => ({
+      rack: r,
+      distanceKm: haversineKm(origin, { lat: r.lat, lng: r.lng }),
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, k);
 }
