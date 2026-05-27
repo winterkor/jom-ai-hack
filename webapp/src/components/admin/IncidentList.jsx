@@ -3,7 +3,6 @@ import {
   INCIDENT_TYPES,
   SEVERITY,
   openIncidents,
-  pickIncidentBlurb,
   timeAgo,
 } from "../../data/mockIncidents.js";
 
@@ -139,7 +138,7 @@ export default function IncidentList({
                     {rack ? rack.name : inc.rackId}
                   </div>
                   <div className="panel-row__sub">
-                    {pickIncidentBlurb(inc.id, inc.type)} · {timeAgo(inc.detectedAt)}
+                    {inc.note} · {timeAgo(inc.detectedAt)}
                   </div>
                 </div>
                 <span className={`severity-pill severity-pill--${inc.severity}`}>

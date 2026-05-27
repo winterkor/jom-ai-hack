@@ -5,7 +5,11 @@ import OccupancyList from "./OccupancyList.jsx";
 import AdminMap from "./AdminMap.jsx";
 import LiveFeed from "./LiveFeed.jsx";
 import IncidentModal from "./IncidentModal.jsx";
+import NavPreviewCard from "../NavPreviewCard.jsx";
+import NavBanner from "../NavBanner.jsx";
+import NavExitBar from "../NavExitBar.jsx";
 import { mockIncidents } from "../../data/mockIncidents.js";
+import { getCyclingRoute } from "../../services/routing.js";
 import "./AdminDashboard.css";
 
 const TABS = [
@@ -14,14 +18,36 @@ const TABS = [
   { id: "racks", label: "Racks" },
 ];
 
+// Tampines Hub — used as the maintainer's depot origin when geolocation is
+// unavailable or denied. Keeps the route demo working without any prompts.
+const DEPOT = { lat: 1.3540, lng: 103.9438 };
+
 export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
   const [incidents, setIncidents] = useState(mockIncidents);
   const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState("incidents");
-  // Rack the admin asked to navigate to (from an incident). Drives map fly-to
-  // + a destination teardrop pin. Bumping `nonce` re-triggers fly even if the
-  // same rack is selected twice.
-  const [flyTarget, setFlyTarget] = useState(null);
+
+  // Same nav state machine as the rider — 'idle' | 'preview' | 'active'.
+  // navRoute carries the OSRM response so the banner/exit bar can read it.
+  const [navState, setNavState] = useState("idle");
+  const [navRoute, setNavRoute] = useState(null);
+  const [navRack, setNavRack] = useState(null);
+
+  // Maintainer's "you are here" pin on the map. Same geolocation→depot logic
+  // as resolveOrigin, but resolved once on mount so the marker stays visible
+  // outside of nav mode too.
+  const [adminLocation, setAdminLocation] = useState(DEPOT);
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const id = navigator.geolocation.getCurrentPosition(
+      (pos) => setAdminLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+    );
+    return () => {
+      if (id) navigator.geolocation.clearWatch?.(id);
+    };
+  }, []);
 
   const rackIndex = useMemo(() => {
     const m = new Map();
@@ -58,23 +84,70 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
     return total ? Math.round((used / total) * 100) : 0;
   }, [racks]);
 
-  // When an incident is tapped from the LiveFeed-less phone, focus stays in
-  // the Incidents tab — selecting from another tab still opens the modal.
-  const handleSelectIncident = (id) => {
-    setSelectedId(id);
+  const handleSelectIncident = (id) => setSelectedId(id);
+
+  // Resolve maintainer origin — try geolocation, fall back to the depot.
+  const resolveOrigin = () =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) return resolve(DEPOT);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => resolve(DEPOT),
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+      );
+    });
+
+  const handleNavigate = async (rackArg) => {
+    // Accept either a rack object (from OccupancyList) or fall back to the
+    // currently-selected incident's rack (from IncidentModal).
+    const rack =
+      rackArg && rackArg.id
+        ? rackArg
+        : selected
+        ? rackIndex.get(selected.rackId)
+        : null;
+    if (!rack) return;
+    setSelectedId(null);
+    setActiveTab("map");
+    setNavRack(rack);
+    const origin = await resolveOrigin();
+    const osrm = await getCyclingRoute(origin, { lat: rack.lat, lng: rack.lng });
+    const fallback = {
+      coords: [[origin.lat, origin.lng], [rack.lat, rack.lng]],
+      distanceM: 1000,
+      durationS: 360,
+      steps: [
+        { instruction: "Head to incident", modifier: "straight", type: "depart", distance: 0, location: [origin.lat, origin.lng], name: "" },
+        { instruction: "Arrive at incident", modifier: "straight", type: "arrive", distance: 0, location: [rack.lat, rack.lng], name: "" },
+      ],
+    };
+    setNavRoute(osrm || fallback);
+    setNavState("preview");
   };
 
-  const handleNavigate = () => {
-    if (!selected) return;
-    const rack = rackIndex.get(selected.rackId);
-    if (!rack) return;
-    setFlyTarget({ rack, nonce: Date.now() });
-    setActiveTab("map");
-    setSelectedId(null);
+  const handleStartActive = () => {
+    if (!navRoute) return;
+    setNavState("active");
   };
+
+  const handleExitNav = () => {
+    setNavState("idle");
+    setNavRoute(null);
+    setNavRack(null);
+  };
+
+  const isPreview = navState === "preview";
+  const isActive = navState === "active";
+
+  const firstStep = navRoute?.steps?.[0];
+  const nextStep = navRoute?.steps?.[1];
 
   return (
-    <div className="admin grain" data-active-tab={activeTab}>
+    <div
+      className="admin grain"
+      data-active-tab={activeTab}
+      data-nav-state={navState}
+    >
       <AdminNav
         openCount={openCount}
         dataState={dataState}
@@ -95,16 +168,12 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
             {openCount === 1 ? "alert" : "alerts"}
           </span>
         </div>
-        <span className="admin__hero-sep" aria-hidden>
-          •
-        </span>
+        <span className="admin__hero-sep" aria-hidden>•</span>
         <div className="admin__hero-stat">
           <span className="admin__hero-num">{racks.length}</span>
           <span className="admin__hero-label">racks</span>
         </div>
-        <span className="admin__hero-sep" aria-hidden>
-          •
-        </span>
+        <span className="admin__hero-sep" aria-hidden>•</span>
         <div className="admin__hero-stat">
           <span className="admin__hero-num">{usedPct}%</span>
           <span className="admin__hero-label">used</span>
@@ -132,9 +201,25 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
         >
           <AdminMap
             racks={racks}
-            flyTarget={flyTarget}
-            onClearFlyTarget={() => setFlyTarget(null)}
+            routeCoords={navRoute?.coords || null}
+            adminLocation={adminLocation}
           />
+          {isActive && <NavBanner step={firstStep} nextStep={nextStep} />}
+          {isPreview && (
+            <NavPreviewCard
+              route={navRoute}
+              rack={navRack}
+              onStart={handleStartActive}
+              onCancel={handleExitNav}
+            />
+          )}
+          {isActive && (
+            <NavExitBar
+              route={navRoute}
+              onExit={handleExitNav}
+              onArrive={handleExitNav}
+            />
+          )}
         </main>
 
         <aside
@@ -142,7 +227,7 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
             activeTab === "racks" ? " is-active" : ""
           }`}
         >
-          <OccupancyList racks={racks} />
+          <OccupancyList racks={racks} onNavigate={handleNavigate} />
         </aside>
       </div>
 
@@ -156,23 +241,23 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
 
       <nav className="admin__tabbar" role="tablist" aria-label="Admin sections">
         {TABS.map((t) => {
-          const active = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={`admin__tab${active ? " is-active" : ""}`}
-              onClick={() => setActiveTab(t.id)}
-            >
-              <span className="admin__tab-label">{t.label}</span>
-              {t.id === "incidents" && openCount > 0 && (
-                <span className="admin__tab-badge">{openCount}</span>
-              )}
-            </button>
-          );
-        })}
+            const active = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={`admin__tab${active ? " is-active" : ""}`}
+                onClick={() => setActiveTab(t.id)}
+              >
+                <span className="admin__tab-label">{t.label}</span>
+                {t.id === "incidents" && openCount > 0 && (
+                  <span className="admin__tab-badge">{openCount}</span>
+                )}
+              </button>
+            );
+          })}
       </nav>
 
       {selected && (

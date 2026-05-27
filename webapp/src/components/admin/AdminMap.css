@@ -134,23 +134,36 @@
   background: var(--admin-panel-2);
 }
 
-/* Clear-destination button (only visible when a flyTarget pin is dropped) */
-.admin-map__clear {
+/* Admin "you are here" marker — blue pulsing dot, distinguishes the maintainer
+   from the rack pins so they can spot themselves on the dense Tampines map. */
+.admin-self-wrap {
+  background: transparent;
+  border: 0;
+}
+.admin-self {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.admin-self__dot {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 600;
-  padding: 7px 12px;
-  background: var(--admin-panel);
-  color: var(--admin-text);
-  border: 1px solid var(--admin-line);
-  border-radius: 8px;
-  font: 700 11px/1 var(--font-display);
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 18%, transparent);
+  inset: 5px;
+  border-radius: 999px;
+  background: #2f7ef0;
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+.admin-self__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #2f7ef0;
+  opacity: 0.35;
+  animation: admin-self-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes admin-self-ping {
+  0%   { transform: scale(0.5); opacity: 0.55; }
+  80%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
 }
 
-.admin-map__clear:hover {
-  background: var(--admin-panel-2);
-}

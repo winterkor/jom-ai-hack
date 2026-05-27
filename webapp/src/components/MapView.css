@@ -233,7 +233,7 @@
 .user-marker__dot {
   width: 18px;
   height: 18px;
-  background: var(--hazard);
+  background: #2f7ef0;
   border: 3px solid var(--ink);
   border-radius: 50%;
   box-shadow: 2px 2px 0 var(--ink);
@@ -285,7 +285,7 @@
   height: 18px;
   margin-top: -9px;
   margin-left: -9px;
-  background: var(--hazard);
+  background: #2f7ef0;
   border: 2px solid var(--ink);
   border-radius: 50%;
   opacity: 0.6;

@@ -1,22 +1,19 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+import RouteLayer from "../RouteLayer.jsx";
 import { getRackStatus } from "../../data/rackData.js";
 import "../MapView.css";
 import "./AdminMap.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
 
-// Same dot language as the rider map — the operational detail lives in
-// OccupancyList / IncidentList / LiveFeed, so the map only needs to answer
-// "where are the red ones?" at a glance.
 function buildIcon(rack) {
   const status = getRackStatus(rack);
   const size = 28;
-
   return L.divIcon({
     className: "rack-marker-wrap",
     iconSize: [size, size],
@@ -32,14 +29,12 @@ function buildIcon(rack) {
 function buildClusterIcon(cluster) {
   const children = cluster.getAllChildMarkers();
   const statusCounts = { available: 0, filling: 0, full: 0 };
-
   for (const m of children) {
     const rack = m.options.rackData;
     if (!rack) continue;
     statusCounts[getRackStatus(rack)] += 1;
   }
   const dominant = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
-
   const s = Math.round(44 + Math.min(children.length, 12) * 1.1);
   return L.divIcon({
     className: "rack-cluster-wrap",
@@ -51,6 +46,28 @@ function buildClusterIcon(cluster) {
       </div>
     `,
   });
+}
+
+// "You are here" pin for the admin. Pulsing blue dot styled in AdminMap.css.
+function AdminSelfMarker({ location }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !location) return;
+    const icon = L.divIcon({
+      className: "admin-self-wrap",
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+      html: '<div class="admin-self"><div class="admin-self__pulse"></div><div class="admin-self__dot"></div></div>',
+    });
+    const marker = L.marker([location.lat, location.lng], {
+      icon,
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 1000,
+    }).addTo(map);
+    return () => { map.removeLayer(marker); };
+  }, [map, location?.lat, location?.lng]);
+  return null;
 }
 
 function RackLayer({ racks }) {
@@ -79,7 +96,6 @@ function RackLayer({ racks }) {
 
     map.addLayer(group);
     groupRef.current = group;
-
     return () => {
       map.removeLayer(group);
       groupRef.current = null;
@@ -89,76 +105,54 @@ function RackLayer({ racks }) {
   return null;
 }
 
-function FitBounds({ racks, suppressed }) {
+// Fixed view of the Tampines core. We deliberately skip "fit to all racks"
+// because the live LTA dataset spans Bedok → Loyang → Changi, which produces
+// a viewport with a lot of empty space outside the dense Tampines cluster.
+const TAMPINES_FOCUS = { center: [1.345, 103.952], zoom: 16 };
+
+function FixedFocus({ suppressed }) {
   const map = useMap();
   useEffect(() => {
-    if (suppressed) return;
-    if (!map || racks.length === 0) return;
-    const bounds = L.latLngBounds(racks.map((r) => [r.lat, r.lng]));
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
-  }, [map, racks, suppressed]);
+    if (suppressed || !map) return;
+    map.setView(TAMPINES_FOCUS.center, TAMPINES_FOCUS.zoom, { animate: false });
+  }, [map, suppressed]);
   return null;
 }
 
-function buildDestIcon(rack) {
-  const tail = (rack.id || "").split("-").pop() || "";
-  const displayCode = tail.length > 2 ? tail.slice(-2) : tail;
-  return L.divIcon({
-    className: "myrack-pin-wrap",
-    iconSize: [44, 58],
-    iconAnchor: [22, 56],
-    html: `
-      <div class="myrack-pin myrack-pin--dest">
-        <div class="myrack-pin__shadow"></div>
-        <div class="myrack-pin__body">
-          <div class="myrack-pin__code">${displayCode}</div>
-        </div>
-      </div>
-    `,
-  });
+// When a route is set, frame it tight so the maintainer can see depot → rack
+// in a single glance, leaving room for the preview card / nav banner chrome.
+function FitRoute({ coords }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !coords || coords.length < 2) return;
+    const bounds = L.latLngBounds(coords);
+    map.fitBounds(bounds, { padding: [80, 80], maxZoom: 17 });
+  }, [map, coords]);
+  return null;
 }
 
-// Fly to the target rack and drop a destination teardrop pin. The nonce on
-// flyTarget makes "navigate to the same rack twice" repeat the animation.
-function FlyToTarget({ flyTarget }) {
+// Leaflet caches container dimensions on init. When admin chrome is unmounted
+// for nav mode (or remounted on exit), the map container resizes but the map
+// instance keeps the old size, leaving tiles half-loaded / blank. Force a
+// re-measure whenever the routing flag flips.
+function InvalidateOnNav({ active }) {
   const map = useMap();
-  const markerRef = useRef(null);
-
   useEffect(() => {
     if (!map) return;
-    // Always clear previous pin before placing the new one.
-    if (markerRef.current) {
-      map.removeLayer(markerRef.current);
-      markerRef.current = null;
-    }
-    if (!flyTarget?.rack) return;
-    const { rack } = flyTarget;
-    map.flyTo([rack.lat, rack.lng], 17, { duration: 1.1 });
-    const marker = L.marker([rack.lat, rack.lng], {
-      icon: buildDestIcon(rack),
-      interactive: false,
-      keyboard: false,
-      zIndexOffset: 1000,
-    });
-    marker.addTo(map);
-    markerRef.current = marker;
-    return () => {
-      if (markerRef.current) {
-        map.removeLayer(markerRef.current);
-        markerRef.current = null;
-      }
-    };
-  }, [map, flyTarget]);
-
+    const t = setTimeout(() => map.invalidateSize(), 60);
+    return () => clearTimeout(t);
+  }, [map, active]);
   return null;
 }
 
-export default function AdminMap({ racks, flyTarget, onClearFlyTarget }) {
+export default function AdminMap({ racks, routeCoords, adminLocation }) {
+  const isRouting = Boolean(routeCoords && routeCoords.length >= 2);
   return (
     <div className="admin-map">
       <MapContainer
         center={TAMPINES_CENTER}
         zoom={14}
+        zoomSnap={0.5}
         zoomControl={false}
         scrollWheelZoom
         style={{ width: "100%", height: "100%", background: "var(--admin-panel-2)" }}
@@ -169,41 +163,34 @@ export default function AdminMap({ racks, flyTarget, onClearFlyTarget }) {
           subdomains="abcd"
           maxZoom={19}
         />
-        <ZoomControl position="bottomright" />
-        <FitBounds racks={racks} suppressed={Boolean(flyTarget)} />
+        <FixedFocus suppressed={isRouting} />
         <RackLayer racks={racks} />
-        <FlyToTarget flyTarget={flyTarget} />
+        {adminLocation && <AdminSelfMarker location={adminLocation} />}
+        <InvalidateOnNav active={isRouting} />
+        {isRouting && <RouteLayer coords={routeCoords} />}
+        {isRouting && <FitRoute coords={routeCoords} />}
       </MapContainer>
 
-      {flyTarget?.rack && (
-        <button
-          type="button"
-          className="admin-map__clear"
-          onClick={onClearFlyTarget}
-          title="Clear destination"
-        >
-          ✕ Clear pin
-        </button>
+      {!isRouting && (
+        <div className="admin-map__legend">
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "var(--status-available)" }} />
+            Available
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "var(--status-filling)" }} />
+            Filling
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "var(--status-full)" }} />
+            Full
+          </span>
+          <span className="legend-item">
+            <span className="legend-dot" style={{ background: "var(--status-offline)" }} />
+            Offline
+          </span>
+        </div>
       )}
-
-      <div className="admin-map__legend">
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--status-available)" }} />
-          Available
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--status-filling)" }} />
-          Filling
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--status-full)" }} />
-          Full
-        </span>
-        <span className="legend-item">
-          <span className="legend-dot" style={{ background: "var(--status-offline)" }} />
-          Offline
-        </span>
-      </div>
     </div>
   );
 }

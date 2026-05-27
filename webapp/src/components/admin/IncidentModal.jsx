@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import {
   INCIDENT_TYPES,
   SEVERITY,
-  pickIncidentPhoto,
   timeAgo,
 } from "../../data/mockIncidents.js";
 import "./IncidentModal.css";
@@ -30,11 +29,7 @@ export default function IncidentModal({ incident, rack, onClose, onResolve, onNa
   const type = INCIDENT_TYPES[incident.type];
   const sev = SEVERITY[incident.severity];
   const hasReference = Boolean(incident.referenceUrl);
-  // For non-abandoned incidents we deterministically pick a CV photo per rack
-  // (same rack always shows the same scene). Abandoned keeps its Day1/Day2 cmp.
-  const detectionSrc = hasReference
-    ? incident.imageUrl
-    : pickIncidentPhoto(incident.rackId);
+  const detectionSrc = incident.imageUrl;
 
   return (
     <div className="imodal" role="dialog" aria-modal="true" onClick={onClose}>
