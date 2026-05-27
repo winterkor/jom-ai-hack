@@ -4,30 +4,26 @@ import L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
-import { getRackStatus, getAvailableSlots } from "../../data/rackData.js";
+import { getRackStatus } from "../../data/rackData.js";
 import "../MapView.css";
 import "./AdminMap.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
 
-// Mirrors MapView's rack chip so the maintainer surface speaks the same
-// visual language as the rider app — no click, view-only.
+// Same dot language as the rider map — the operational detail lives in
+// OccupancyList / IncidentList / LiveFeed, so the map only needs to answer
+// "where are the red ones?" at a glance.
 function buildIcon(rack) {
   const status = getRackStatus(rack);
-  const available = getAvailableSlots(rack);
-  const code = rack.id.split("-").pop() || "";
-  const displayCode = code.length > 2 ? code.slice(-2) : code;
+  const size = 28;
 
   return L.divIcon({
     className: "rack-marker-wrap",
-    iconSize: [56, 64],
-    iconAnchor: [28, 64],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
     html: `
       <div class="rack-marker" data-status="${status}" data-compact="false">
-        <div class="rack-marker__stripe"></div>
-        <div class="rack-marker__code">${displayCode}</div>
-        <div class="rack-marker__chip">${available}</div>
-        <div class="rack-marker__tail"></div>
+        <div class="rack-marker__dot"></div>
       </div>
     `,
   });
@@ -35,26 +31,23 @@ function buildIcon(rack) {
 
 function buildClusterIcon(cluster) {
   const children = cluster.getAllChildMarkers();
-  let totalAvail = 0;
   const statusCounts = { available: 0, filling: 0, full: 0 };
 
   for (const m of children) {
     const rack = m.options.rackData;
     if (!rack) continue;
-    totalAvail += getAvailableSlots(rack);
     statusCounts[getRackStatus(rack)] += 1;
   }
   const dominant = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
 
+  const s = Math.round(44 + Math.min(children.length, 12) * 1.1);
   return L.divIcon({
     className: "rack-cluster-wrap",
-    iconSize: [62, 62],
-    iconAnchor: [31, 31],
+    iconSize: [s, s],
+    iconAnchor: [s / 2, s / 2],
     html: `
       <div class="rack-cluster" data-status="${dominant}" data-compact="false">
-        <div class="rack-cluster__stripe"></div>
         <div class="rack-cluster__count">${children.length}</div>
-        <div class="rack-cluster__free">${totalAvail} FREE</div>
       </div>
     `,
   });

@@ -40,19 +40,10 @@ button {
   outline: none;
 }
 
+/* Attribution panel hidden for the demo; we still pass the credit string
+ * to Leaflet for compliance, just removed visually so the map fills clean. */
 .leaflet-control-attribution {
-  background: var(--card) !important;
-  border: var(--border-w) solid var(--ink) !important;
-  border-radius: 0 !important;
-  font-family: var(--font-mono) !important;
-  font-size: 10px !important;
-  padding: 4px 8px !important;
-  color: var(--ink-soft) !important;
-  box-shadow: var(--shadow-flat-sm);
-}
-
-.leaflet-control-attribution a {
-  color: var(--ink) !important;
+  display: none !important;
 }
 
 .leaflet-control-zoom {

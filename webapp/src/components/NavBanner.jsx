@@ -7,7 +7,11 @@ import "./NavBanner.css";
 export default function NavBanner({ step, nextStep, distanceToStepM }) {
   if (!step) return null;
   const glyph = maneuverGlyph(step);
-  const name = step.name?.trim() || maneuverHint(step);
+  const street = step.name?.trim();
+  const name =
+    step.type === "depart"
+      ? street || "Start cycling"
+      : street || maneuverHint(step);
   const distHint =
     distanceToStepM != null && step.type !== "arrive"
       ? formatMeters(distanceToStepM)

@@ -41,13 +41,6 @@ export default function Header({
           </button>
           <div className="hdr__lines">
             <div className="hdr__title">PARK·NET</div>
-            <div className="hdr__sub">
-              <span className="hdr__net">TAMPINES BICYCLE NETWORK </span>
-              <span className="hdr__dot" data-c={state.color}>
-                ●
-              </span>{" "}
-              {state.text}
-            </div>
           </div>
         </div>
 

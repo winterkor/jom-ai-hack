@@ -10,30 +10,45 @@ import "./MapView.css";
 
 const TAMPINES_CENTER = [1.354, 103.943];
 
-const isMobile = () =>
+// Phones start zoomed-in enough that individual rack badges are visible
+// instead of being swallowed into cluster blobs (cluster radius is 55px,
+// so at zoom 15 dense Tampines collapses into ~8 clusters).
+const isMobileViewport =
   typeof window !== "undefined" && window.innerWidth <= 720;
+const DEFAULT_ZOOM = isMobileViewport ? 16 : 15;
 
 function buildIcon(rack, isSelected, order = 0, compact = false) {
   const status = getRackStatus(rack);
-  const available = getAvailableSlots(rack);
-  const code = rack.id.split("-").pop() || "";
-  const displayCode = code.length > 2 ? code.slice(-2) : code;
   const delay = `${Math.min(order, 30) * 35}ms`;
 
-  // Phones get a smaller footprint so co-located racks don't smother the map.
-  const w = compact ? 40 : 56;
-  const h = compact ? 46 : 64;
+  // Phones get a smaller dot so dense areas stay readable.
+  const size = compact ? 22 : 28;
 
   return L.divIcon({
     className: "rack-marker-wrap",
-    iconSize: [w, h],
-    iconAnchor: [w / 2, h],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
     html: `
       <div class="rack-marker ${isSelected ? "rack-marker--sel" : ""}" data-status="${status}" data-compact="${compact}" style="animation-delay: ${delay}">
-        <div class="rack-marker__stripe"></div>
-        <div class="rack-marker__code">${displayCode}</div>
-        <div class="rack-marker__chip">${available}</div>
-        <div class="rack-marker__tail"></div>
+        <div class="rack-marker__dot"></div>
+      </div>
+    `,
+  });
+}
+
+// Google Maps-style red teardrop pin used to mark the user's parked rack.
+// Anchored at the bottom tip so the point lands on the rack location.
+function buildMyRackIcon() {
+  return L.divIcon({
+    className: "myrack-pin-wrap",
+    iconSize: [38, 52],
+    iconAnchor: [19, 50],
+    html: `
+      <div class="myrack-pin">
+        <div class="myrack-pin__shadow"></div>
+        <div class="myrack-pin__body">
+          <div class="myrack-pin__hole"></div>
+        </div>
       </div>
     `,
   });
@@ -41,52 +56,69 @@ function buildIcon(rack, isSelected, order = 0, compact = false) {
 
 function buildClusterIcon(cluster, compact = false) {
   const children = cluster.getAllChildMarkers();
-  let totalAvail = 0;
   const statusCounts = { available: 0, filling: 0, full: 0 };
 
   for (const m of children) {
     const rack = m.options.rackData;
     if (!rack) continue;
-    totalAvail += getAvailableSlots(rack);
     statusCounts[getRackStatus(rack)] += 1;
   }
   const dominant = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
 
-  const s = compact ? 48 : 62;
+  // Cluster size scales gently with rack count so dense areas read as denser.
+  const base = compact ? 36 : 44;
+  const bump = Math.min(children.length, 12) * (compact ? 0.8 : 1.1);
+  const s = Math.round(base + bump);
+
   return L.divIcon({
     className: "rack-cluster-wrap",
     iconSize: [s, s],
     iconAnchor: [s / 2, s / 2],
     html: `
       <div class="rack-cluster" data-status="${dominant}" data-compact="${compact}">
-        <div class="rack-cluster__stripe"></div>
         <div class="rack-cluster__count">${children.length}</div>
-        <div class="rack-cluster__free">${totalAvail} FREE</div>
       </div>
     `,
   });
 }
 
-const userIcon = L.divIcon({
-  className: "user-marker-wrap",
-  iconSize: [42, 42],
-  iconAnchor: [21, 21],
-  html: `<div class="user-marker"><div class="user-marker__pulse"></div><div class="user-marker__dot"></div></div>`,
-});
+function buildUserIcon(active = false, heading = 0) {
+  if (active) {
+    return L.divIcon({
+      className: "user-marker-wrap",
+      iconSize: [86, 86],
+      iconAnchor: [43, 43],
+      html: `
+        <div class="user-marker user-marker--nav">
+          <div class="user-marker__compass"></div>
+          <div class="user-marker__arrow" style="transform: rotate(${heading}deg)"></div>
+        </div>
+      `,
+    });
+  }
+
+  return L.divIcon({
+    className: "user-marker-wrap",
+    iconSize: [42, 42],
+    iconAnchor: [21, 21],
+    html: `<div class="user-marker"><div class="user-marker__pulse"></div><div class="user-marker__dot"></div></div>`,
+  });
+}
 
 function buildDestIcon(rack) {
   const code = rack.id.split("-").pop() || "";
+  // Last 2 chars of the id reads as a short station-style code (e.g. "79").
   const displayCode = code.length > 2 ? code.slice(-2) : code;
   return L.divIcon({
-    className: "dest-marker-wrap",
-    iconSize: [72, 86],
-    iconAnchor: [36, 86],
+    className: "myrack-pin-wrap",
+    iconSize: [44, 58],
+    iconAnchor: [22, 56],
     html: `
-      <div class="dest-marker">
-        <div class="dest-marker__pulse"></div>
-        <div class="dest-marker__tab">DEST</div>
-        <div class="dest-marker__badge">${displayCode}</div>
-        <div class="dest-marker__stem"></div>
+      <div class="myrack-pin myrack-pin--dest">
+        <div class="myrack-pin__shadow"></div>
+        <div class="myrack-pin__body">
+          <div class="myrack-pin__code">${displayCode}</div>
+        </div>
       </div>
     `,
   });
@@ -129,15 +161,40 @@ function RackLayer({ racks, selectedRack, onSelectRack }) {
   return null;
 }
 
+// "You parked here" pin — rendered outside the cluster group so it's never
+// swallowed by clustering and always sits above other markers.
+function MyRackMarker({ rack, onSelect }) {
+  const map = useMap();
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!rack) return;
+    const marker = L.marker([rack.lat, rack.lng], {
+      icon: buildMyRackIcon(),
+      zIndexOffset: 2500, // above DestinationMarker (2000)
+      keyboard: false,
+    });
+    if (onSelect) marker.on("click", () => onSelect(rack));
+    marker.addTo(map);
+    ref.current = marker;
+    return () => {
+      map.removeLayer(marker);
+      ref.current = null;
+    };
+  }, [rack?.id, rack?.lat, rack?.lng, map, onSelect]);
+
+  return null;
+}
+
 // Render the user "you are here" marker
-function UserMarker({ userPos }) {
+function UserMarker({ userPos, active, heading }) {
   const map = useMap();
   const ref = useRef(null);
 
   useEffect(() => {
     if (!userPos) return;
     const marker = L.marker([userPos.lat, userPos.lng], {
-      icon: userIcon,
+      icon: buildUserIcon(active, heading),
       zIndexOffset: 1500,
       interactive: false,
     });
@@ -147,7 +204,7 @@ function UserMarker({ userPos }) {
       map.removeLayer(marker);
       ref.current = null;
     };
-  }, [userPos?.lat, userPos?.lng, map]);
+  }, [userPos?.lat, userPos?.lng, active, heading, map]);
 
   return null;
 }
@@ -222,6 +279,19 @@ function FlyTo({ target }) {
   return null;
 }
 
+function bearingFromRoute(coords) {
+  if (!coords || coords.length < 2) return 0;
+  const [a, b] = coords;
+  const lat1 = (a[0] * Math.PI) / 180;
+  const lat2 = (b[0] * Math.PI) / 180;
+  const dLng = ((b[1] - a[1]) * Math.PI) / 180;
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x =
+    Math.cos(lat1) * Math.sin(lat2) -
+    Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
 export default function MapView({
   racks,
   selectedRack,
@@ -229,12 +299,21 @@ export default function MapView({
   userPos,
   flyTo,
   routeCoords,
+  navState = "idle",
+  myRackId = null,
 }) {
+  const isActiveNav = navState === "active";
+  const heading = bearingFromRoute(routeCoords);
+
   return (
-    <div className="mapview" data-focus={selectedRack ? "true" : "false"}>
+    <div
+      className="mapview"
+      data-focus={selectedRack ? "true" : "false"}
+      data-nav-state={navState}
+    >
       <MapContainer
         center={TAMPINES_CENTER}
-        zoom={15}
+        zoom={DEFAULT_ZOOM}
         zoomControl={false}
         scrollWheelZoom={true}
         className="mapview__map"
@@ -254,9 +333,20 @@ export default function MapView({
           onSelectRack={onSelectRack}
         />
 
-        <UserMarker userPos={userPos} />
+        <UserMarker userPos={userPos} active={isActiveNav} heading={heading} />
 
-        <DestinationMarker rack={selectedRack} />
+        {/* Suppress the destination pin when it points at the rack the user
+            has already parked at — otherwise both red teardrops stack at the
+            same coordinates after "Confirm parked". */}
+        <DestinationMarker
+          rack={selectedRack && selectedRack.id !== myRackId ? selectedRack : null}
+        />
+
+        {myRackId &&
+          (() => {
+            const myRack = racks.find((r) => r.id === myRackId);
+            return myRack ? <MyRackMarker rack={myRack} onSelect={onSelectRack} /> : null;
+          })()}
 
         <RouteLayer coords={routeCoords} />
 

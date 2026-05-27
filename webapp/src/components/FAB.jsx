@@ -1,17 +1,11 @@
 import "./FAB.css";
 
-export default function FAB({ onFindNearest, onLocate, busy, hasUserPos }) {
+// Locate-me button removed: user position is auto-fetched on app mount
+// (see App.jsx) so the "you are here" dot is always visible without an
+// extra tap.
+export default function FAB({ onFindNearest, busy }) {
   return (
     <div className="fab">
-      <button
-        className="fab__btn fab__btn--locate"
-        onClick={onLocate}
-        title={hasUserPos ? "Re-locate me" : "Use my location"}
-        aria-label="Locate me"
-      >
-        <span className="fab__icon" aria-hidden="true">◎</span>
-      </button>
-
       <button
         className="fab__btn fab__btn--primary"
         onClick={onFindNearest}

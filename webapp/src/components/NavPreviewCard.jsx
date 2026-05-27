@@ -11,10 +11,15 @@ export default function NavPreviewCard({ route, rack, onStart, onCancel }) {
 
   return (
     <aside className="navprev" role="region" aria-label="Route preview">
-      <div className="navprev__row">
-        <div className="navprev__mode">
-          <span className="navprev__bike" aria-hidden="true">🚲</span>
-          <span className="navprev__mode-text">BICYCLE</span>
+      <div className="navprev__handle" aria-hidden="true" />
+
+      <div className="navprev__top">
+        <div>
+          <div className="navprev__eyebrow">Available rack found</div>
+          <div className="navprev__title">Bike there</div>
+          <div className="navprev__destination">
+            {rack?.name || "Selected rack"}
+          </div>
         </div>
         <button
           type="button"
@@ -34,22 +39,23 @@ export default function NavPreviewCard({ route, rack, onStart, onCancel }) {
         <div className="navprev__meta">
           <div className="navprev__arrive">Arrive {arrival}</div>
           <div className="navprev__dist">
-            {distLabel}
-            {rack?.name ? ` · ${rack.name}` : ""}
+            {distLabel} to rack
           </div>
-          <div className="navprev__hint">Mostly bike paths · Mostly flat</div>
+          <div className="navprev__hint">Follow the highlighted cycling route.</div>
         </div>
       </div>
 
-      <button
-        type="button"
-        className="navprev__start"
-        onClick={onStart}
-        aria-label="Start navigation"
-      >
-        <span className="navprev__start-arrow" aria-hidden="true">▶</span>
-        <span className="navprev__start-text">START</span>
-      </button>
+      <div className="navprev__actions">
+        <button
+          type="button"
+          className="navprev__start"
+          onClick={onStart}
+          aria-label="Start navigation"
+        >
+          <span className="navprev__start-arrow" aria-hidden="true">▲</span>
+          <span className="navprev__start-text">Start</span>
+        </button>
+      </div>
     </aside>
   );
 }

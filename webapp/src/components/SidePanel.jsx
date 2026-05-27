@@ -97,7 +97,7 @@ export default function SidePanel({
         <span className="panel__nav-arrow" aria-hidden="true">▸</span>
         <span className="panel__nav-main">PREVIEW ROUTE</span>
         <span className="panel__nav-tag">
-          {userPos ? "TAP TO PREVIEW" : "WILL LOCATE FIRST"}
+          {userPos ? "TAP TO PREVIEW" : "DEMO START IF GPS BLOCKED"}
         </span>
       </button>
 

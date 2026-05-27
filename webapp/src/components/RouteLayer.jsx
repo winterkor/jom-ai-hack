@@ -16,20 +16,22 @@ export default function RouteLayer({ coords }) {
     if (!coords || coords.length < 2) return undefined;
 
     const halo = L.polyline(coords, {
-      color: "#FBF7EC",
-      weight: 11,
-      opacity: 0.95,
+      color: "#ffffff",
+      weight: 13,
+      opacity: 0.96,
       lineCap: "round",
       lineJoin: "round",
       interactive: false,
+      className: "route-line-halo",
     });
     const line = L.polyline(coords, {
-      color: "#1F2A44",
-      weight: 6,
+      color: "#3f2df4",
+      weight: 7,
       opacity: 1,
       lineCap: "round",
       lineJoin: "round",
       interactive: false,
+      className: "route-line",
     });
 
     const group = L.layerGroup([halo, line]).addTo(map);

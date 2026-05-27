@@ -1,34 +1,31 @@
 .navbanner {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  z-index: 850;
-  background: var(--status-available);
-  color: #FBF7EC;
-  border: var(--border-w) solid var(--ink);
-  box-shadow: var(--shadow-flat);
-  padding: 16px 20px;
+  top: calc(14px + env(safe-area-inset-top));
+  left: 14px;
+  right: 14px;
+  z-index: 860;
+  background: #006d67;
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
   display: flex;
   align-items: stretch;
-  justify-content: space-between;
-  gap: 16px;
+  overflow: hidden;
   font-family: var(--font-display);
   animation: navbanner-in var(--dur) var(--ease-out);
 }
 
 @media (min-width: 721px) {
   .navbanner {
-    left: 16px;
-    right: 16px;
-    max-width: 640px;
-    margin: 0 auto;
+    left: 24px;
+    right: auto;
+    width: min(560px, calc(100vw - 48px));
   }
 }
 
 @keyframes navbanner-in {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-18px);
     opacity: 0;
   }
   to {
@@ -40,17 +37,17 @@
 .navbanner__main {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
   flex: 1;
+  padding: 16px 18px;
 }
 
 .navbanner__glyph {
-  font-size: 56px;
-  line-height: 1;
-  font-weight: 700;
-  color: #FBF7EC;
-  min-width: 60px;
+  font-size: clamp(36px, 10vw, 54px);
+  line-height: 0.9;
+  font-weight: 800;
+  min-width: 46px;
   text-align: center;
 }
 
@@ -63,46 +60,63 @@
 }
 
 .navbanner__dist {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: var(--step-0);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.85;
+  font-weight: 800;
+  opacity: 0.88;
 }
 
 .navbanner__street {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: var(--step-3);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-size: clamp(26px, 7vw, 40px);
+  line-height: 1.05;
+  letter-spacing: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .navbanner__then {
+  min-width: 96px;
+  padding: 12px 14px;
+  background: #005c57;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.18);
-  border-left: 2px solid rgba(255, 255, 255, 0.35);
-  min-width: 64px;
+  gap: 8px;
 }
 
 .navbanner__then-label {
-  font-family: var(--font-mono);
-  font-size: var(--step-0);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.9;
+  font-family: var(--font-display);
+  font-size: clamp(18px, 4.5vw, 26px);
+  font-weight: 800;
 }
 
 .navbanner__then-glyph {
-  font-size: 28px;
+  font-size: clamp(24px, 5vw, 34px);
   line-height: 1;
-  font-weight: 700;
+  font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .navbanner {
+    left: 10px;
+    right: 10px;
+    border-radius: 16px;
+  }
+
+  .navbanner__main {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .navbanner__glyph {
+    min-width: 38px;
+  }
+
+  .navbanner__then {
+    min-width: 76px;
+    padding: 10px;
+  }
 }
