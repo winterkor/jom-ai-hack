@@ -1,0 +1,328 @@
+/* Lock-session card
+ *
+ * Three visual states driven by data-tone:
+ *   pending  — amber, gently pulsing pill (waiting for ESP32 to confirm)
+ *   locked   — green (bike secured)
+ *   unlocked — orange (welcome back; usually paired with the unlock popup)
+ *
+ * The card collapses to a small status chip (.locksession-chip) so it can
+ * live alongside the map without dominating it.
+ */
+
+:root {
+  --ls-green: #1f7a3a;
+  --ls-green-bg: #e6f4ea;
+  --ls-green-border: rgba(31, 122, 58, 0.32);
+  --ls-amber: #b45309;
+  --ls-amber-bg: #fef3c7;
+  --ls-amber-border: rgba(180, 83, 9, 0.32);
+  --ls-orange: #c2410c;
+  --ls-orange-bg: #ffedd5;
+  --ls-orange-border: rgba(194, 65, 12, 0.36);
+}
+
+.locksession {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 760;
+  background: #fffefa;
+  border-top: 2px solid rgba(31, 42, 68, 0.16);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -18px 40px rgba(31, 42, 68, 0.18);
+  padding: 14px 20px calc(18px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-body);
+  animation: locksession-in var(--dur) var(--ease-out);
+}
+
+@media (min-width: 721px) {
+  .locksession {
+    left: auto;
+    right: 18px;
+    bottom: 18px;
+    width: min(360px, calc(100vw - 36px));
+    border: 2px solid rgba(31, 42, 68, 0.16);
+    border-radius: 22px;
+  }
+}
+
+@keyframes locksession-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Top row: elapsed + status pill + collapse ─────────── */
+.locksession__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.locksession__elapsed {
+  font-family: var(--font-mono);
+  font-size: var(--step--1, 12px);
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locksession__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step--1, 12px);
+  letter-spacing: 0.02em;
+  border: 1.5px solid transparent;
+  flex-shrink: 0;
+}
+
+.locksession__pill[data-tone="locked"] {
+  background: var(--ls-green-bg);
+  border-color: var(--ls-green-border);
+  color: var(--ls-green);
+}
+
+.locksession__pill[data-tone="unlocked"] {
+  background: var(--ls-orange-bg);
+  border-color: var(--ls-orange-border);
+  color: var(--ls-orange);
+}
+
+.locksession__pill[data-tone="pending"] {
+  background: var(--ls-amber-bg);
+  border-color: var(--ls-amber-border);
+  color: var(--ls-amber);
+  animation: ls-pill-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ls-pill-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+.locksession__pill-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.locksession__collapse {
+  appearance: none;
+  background: #f1f3f4;
+  border: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 700;
+  color: #4b5563;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--dur-fast, 120ms);
+  flex-shrink: 0;
+}
+
+.locksession__collapse:hover { background: #e8eaed; }
+
+/* ── Main info block ───────────────────────────────────── */
+.locksession__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #f8f9fa;
+  border: 1.5px solid rgba(31, 42, 68, 0.08);
+  transition: background var(--dur), border-color var(--dur);
+}
+
+.locksession[data-tone="locked"] .locksession__main {
+  background: var(--ls-green-bg);
+  border-color: var(--ls-green-border);
+}
+
+.locksession[data-tone="unlocked"] .locksession__main {
+  background: var(--ls-orange-bg);
+  border-color: var(--ls-orange-border);
+}
+
+.locksession__heading {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step--1, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #4b5563;
+}
+
+.locksession__rack {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step-2);
+  color: #22252c;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locksession__badge {
+  margin-top: 4px;
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #22252c;
+  background: #fffefa;
+  border: 1.5px solid #22252c;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* ── Action row ────────────────────────────────────────── */
+.locksession__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.locksession__btn {
+  appearance: none;
+  border: 0;
+  min-height: 46px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step-0);
+  cursor: pointer;
+  transition: transform var(--dur-fast, 120ms), filter var(--dur-fast, 120ms), background var(--dur-fast, 120ms);
+}
+
+.locksession__btn:active { transform: translateY(1px); }
+
+.locksession__btn--primary {
+  background: #22252c;
+  color: #fffefa;
+}
+
+.locksession__btn--primary:hover { filter: brightness(1.1); }
+
+.locksession__btn--ghost {
+  background: #f1f3f4;
+  color: #22252c;
+}
+
+.locksession__btn--ghost:hover { background: #e8eaed; }
+
+.locksession__end {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 2px 0 0;
+  font-family: var(--font-body);
+  font-size: var(--step--1, 12px);
+  color: #9ca3af;
+  cursor: pointer;
+  align-self: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.locksession__end:hover { color: #6b7280; }
+
+/* ── Collapsed chip ────────────────────────────────────── */
+.locksession-chip {
+  position: absolute;
+  z-index: 760;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 12px;
+  border-radius: 999px;
+  background: #fffefa;
+  border: 2px solid rgba(31, 42, 68, 0.18);
+  box-shadow: 0 8px 22px rgba(31, 42, 68, 0.18);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--step--1, 12px);
+  color: #22252c;
+  cursor: pointer;
+  transition: transform var(--dur-fast, 120ms), box-shadow var(--dur-fast, 120ms);
+  animation: locksession-in var(--dur) var(--ease-out);
+}
+
+@media (min-width: 721px) {
+  .locksession-chip {
+    left: auto;
+    right: 18px;
+    transform: none;
+  }
+}
+
+.locksession-chip:hover {
+  transform: translateX(-50%) translateY(-1px);
+  box-shadow: 0 10px 26px rgba(31, 42, 68, 0.22);
+}
+
+@media (min-width: 721px) {
+  .locksession-chip:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.locksession-chip__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #9ca3af;
+  flex-shrink: 0;
+}
+
+.locksession-chip[data-tone="locked"] .locksession-chip__dot {
+  background: var(--ls-green);
+  box-shadow: 0 0 0 3px var(--ls-green-bg);
+}
+
+.locksession-chip[data-tone="unlocked"] .locksession-chip__dot {
+  background: var(--ls-orange);
+  box-shadow: 0 0 0 3px var(--ls-orange-bg);
+}
+
+.locksession-chip[data-tone="pending"] .locksession-chip__dot {
+  background: var(--ls-amber);
+  box-shadow: 0 0 0 3px var(--ls-amber-bg);
+  animation: ls-pill-pulse 1.6s ease-in-out infinite;
+}
+
+.locksession-chip__label {
+  letter-spacing: 0.04em;
+}
+
+.locksession-chip__badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #4b5563;
+  padding-left: 8px;
+  border-left: 1.5px solid rgba(31, 42, 68, 0.18);
+}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MapView from "./components/MapView.jsx";
 import Header from "./components/Header.jsx";
 import SidePanel from "./components/SidePanel.jsx";
@@ -9,15 +9,19 @@ import NavPreviewCard from "./components/NavPreviewCard.jsx";
 import NavBanner from "./components/NavBanner.jsx";
 import NavExitBar from "./components/NavExitBar.jsx";
 import ParkingConfirmCard from "./components/ParkingConfirmCard.jsx";
+import LockSessionCard from "./components/LockSessionCard.jsx";
+import UnlockPopup from "./components/UnlockPopup.jsx";
 import AdminDashboard from "./components/admin/AdminDashboard.jsx";
 import RoleSplash from "./components/RoleSplash.jsx";
 import { mockRacks, adaptLtaRack, loadLtaRacks, getRackStatus } from "./data/rackData.js";
 import { fetchTampinesRacks } from "./data/ltaClient.js";
 import { findNearestAvailable, topKNearestAvailable } from "./data/geo.js";
 import { getCyclingRoute } from "./services/routing.js";
+import * as mqttClient from "./services/mqttClient.js";
 import "./App.css";
 
 const ROLE_KEY = "jom-role";
+const SESSION_KEY = "jom-session";
 
 // Resolve initial mode: ?reset=1 → splash; hash → mode; stored role → mode; else splash.
 function initialMode() {
@@ -97,6 +101,78 @@ export default function App() {
   // navRoute holds the full OSRM response so child UI can read steps[]/etc.
   const [navState, setNavState] = useState("idle");
   const [navRoute, setNavRoute] = useState(null);
+
+  // ── Parked session + MQTT lock state ────────────────────────
+  // mySession persists across reloads via localStorage so the rider doesn't
+  // lose their parking marker if they backgrounds the tab. The ESP32 → rack
+  // mapping is dynamic: whichever rack the user confirmed becomes "their"
+  // device for the session.
+  const [mySession, setMySession] = useState(() => {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [lockState, setLockState] = useState(null);
+  const [unlockPromptOpen, setUnlockPromptOpen] = useState(false);
+  // Tracks the *previous* lockState so we can detect a locked → unlocked
+  // transition and auto-show the end-session popup. A ref (not state) so
+  // we don't trigger extra renders.
+  const prevLockRef = useRef(null);
+
+  useEffect(() => {
+    mqttClient.connect();
+    const offState = mqttClient.onLockState((s) => {
+      setLockState((prev) => {
+        // Only fire a notification on real transitions, not on the replay
+        // that fires when a late subscriber gets the cached state.
+        if (
+          prev &&
+          prev !== s &&
+          typeof window !== "undefined" &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          new Notification(
+            s === "locked"
+              ? "🔒 Bike locked at your rack"
+              : "🔓 Bike unlocked — welcome back!"
+          );
+        }
+        return s;
+      });
+    });
+    return () => {
+      offState();
+    };
+  }, []);
+
+  // Auto-open the unlock popup the moment we transition from locked → unlocked
+  // while a session is active. Reading mySession here (not in the MQTT
+  // callback) keeps the closure fresh.
+  useEffect(() => {
+    const prev = prevLockRef.current;
+    prevLockRef.current = lockState;
+    if (prev === "locked" && lockState === "unlocked" && mySession) {
+      setUnlockPromptOpen(true);
+    }
+  }, [lockState, mySession]);
+
+  // Auto-locate on first mount in user mode so the "you are here" dot is
+  // visible AND the map snaps to the user instead of opening on a generic
+  // Tampines centre. Silent failure (permission denied, no GPS) just leaves
+  // the map where it is; Find Nearest will re-prompt later if needed.
+  useEffect(() => {
+    if (mode !== "user") return;
+    if (userPos) return;
+    (async () => {
+      const p = await locateMe();
+      if (p) setFlyTo({ ...p, zoom: 16, key: Date.now() });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // Load bundled LTA geojson on mount; fall back to the LTA DataMall live
   // fetch (which itself falls back to mocks) if the static load somehow fails.
@@ -309,8 +385,100 @@ export default function App() {
           : r,
       ),
     );
+    const session = {
+      rackId: selectedRack.id,
+      rackName: selectedRack.name,
+      rackLat: selectedRack.lat,
+      rackLng: selectedRack.lng,
+      startedAt: Date.now(),
+    };
+    setMySession(session);
+    setLockState(null);
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    // Ask for permission opportunistically so the unlock notification
+    // can fire later without an extra round-trip.
+    if (
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
+      Notification.requestPermission().catch(() => {});
+    }
     setNavState("parked");
   };
+
+  const handleFindBike = (rackId) => {
+    const rack = racks.find((r) => r.id === rackId);
+    if (rack) {
+      showRackDetail(rack);
+      return;
+    }
+    if (mySession) {
+      setFlyTo({
+        lat: mySession.rackLat,
+        lng: mySession.rackLng,
+        zoom: 17,
+        key: Date.now(),
+      });
+    }
+  };
+
+  // Directions back to the parked rack: pick the rack (so child cards bind
+  // to it) then route from current location. Falls back to a straight line
+  // if OSRM is unreachable so the demo still draws a path.
+  const handleDirectionsToSession = async () => {
+    if (!mySession) return;
+    const rack =
+      racks.find((r) => r.id === mySession.rackId) || {
+        id: mySession.rackId,
+        name: mySession.rackName,
+        lat: mySession.rackLat,
+        lng: mySession.rackLng,
+        totalSlots: 0,
+        occupiedSlots: 0,
+      };
+    setSelectedRack(rack);
+    setPanelExpanded(false);
+
+    let from = userPos;
+    if (!from) {
+      from = (await locateMe()) || DEMO_START;
+      setUserPos(from);
+    }
+    const to = { lat: rack.lat, lng: rack.lng };
+    const osrm = await getCyclingRoute(from, to);
+    const fallback = {
+      coords: [
+        [from.lat, from.lng],
+        [to.lat, to.lng],
+      ],
+      distanceM: Math.round(
+        Math.hypot(
+          (to.lat - from.lat) * 111000,
+          (to.lng - from.lng) * 111000 * Math.cos((from.lat * Math.PI) / 180),
+        ),
+      ),
+      durationS: 600,
+      steps: [
+        { instruction: "Head to your bike", modifier: "straight", type: "depart", distance: 0, location: [from.lat, from.lng], name: "" },
+        { instruction: "Arrive at your bike", modifier: "straight", type: "arrive", distance: 0, location: [to.lat, to.lng], name: "" },
+      ],
+    };
+    const route = osrm || fallback;
+    setNavRoute(route);
+    setNavState("preview");
+    setFlyTo({ bounds: route.coords, key: Date.now() });
+  };
+
+  const handleEndSession = () => {
+    setMySession(null);
+    setLockState(null);
+    setUnlockPromptOpen(false);
+    prevLockRef.current = null;
+    localStorage.removeItem(SESSION_KEY);
+  };
+
+  const handleKeepParked = () => setUnlockPromptOpen(false);
 
   const handleFindAnother = async () => {
     const origin = userPos || (selectedRack
@@ -397,6 +565,7 @@ export default function App() {
         flyTo={flyTo}
         routeCoords={navRoute?.coords || null}
         navState={navState}
+        myRackId={mySession?.rackId || null}
       />
 
       {/* SidePanel only when not in nav flow — preview/active have their
@@ -439,16 +608,30 @@ export default function App() {
         />
       )}
 
+      {/* Lock session card — visible after parking, hidden while another
+          rack's SidePanel or any nav UI is in front. */}
+      {mySession && !isNavving && !selectedRack && (
+        <LockSessionCard
+          session={mySession}
+          lockState={lockState}
+          onFindBike={handleFindBike}
+          onDirections={handleDirectionsToSession}
+          onEndSession={handleEndSession}
+        />
+      )}
+
+      <UnlockPopup
+        open={unlockPromptOpen && !!mySession}
+        rackName={mySession?.rackName}
+        onEndSession={handleEndSession}
+        onKeep={handleKeepParked}
+      />
+
       {/* Legend + FAB only in idle — nav UI claims the chrome. */}
       {!isNavving && <Legend />}
 
-      {!isNavving && (
-        <FAB
-          onFindNearest={handleFindNearest}
-          onLocate={handleLocate}
-          busy={locating}
-          hasUserPos={!!userPos}
-        />
+      {!isNavving && !mySession && (
+        <FAB onFindNearest={handleFindNearest} busy={locating} />
       )}
     </div>
   );
