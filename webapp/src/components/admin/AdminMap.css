@@ -167,3 +167,53 @@
   100% { transform: scale(2.2); opacity: 0; }
 }
 
+/* ── FOCUS MODE: dim non-destination markers during nav ──
+   Mirrors the rider's MapView.css pattern. Uses filter:opacity() instead of
+   plain opacity because the divIcon markers may run intro animations with
+   `forwards` fill — a static opacity rule gets overridden, filter doesn't. */
+.admin-map .rack-marker,
+.admin-map .rack-cluster {
+  transition: filter 220ms ease-out;
+}
+.admin-map[data-routing="true"] .rack-marker,
+.admin-map[data-routing="true"] .rack-cluster {
+  filter: opacity(0.22) grayscale(0.2);
+}
+.admin-map[data-routing="true"] .leaflet-tile-pane {
+  filter: saturate(0.92) contrast(0.98);
+}
+
+/* Destination teardrop pin — sits on top of cluster markers (zIndexOffset
+   2000 in JS) so the target rack is unmistakable even when neighboring
+   racks crowd the view. */
+.admin-dest-wrap {
+  background: transparent;
+  border: 0;
+}
+.admin-dest {
+  position: relative;
+  width: 36px;
+  height: 46px;
+  filter: drop-shadow(0 4px 6px color-mix(in srgb, var(--ink) 35%, transparent));
+}
+.admin-dest__pin {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+.admin-dest__pin::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+

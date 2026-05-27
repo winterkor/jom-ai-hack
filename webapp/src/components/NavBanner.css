@@ -15,14 +15,6 @@
   animation: navbanner-in var(--dur) var(--ease-out);
 }
 
-@media (min-width: 721px) {
-  .navbanner {
-    left: 24px;
-    right: auto;
-    width: min(560px, calc(100vw - 48px));
-  }
-}
-
 @keyframes navbanner-in {
   from {
     transform: translateY(-18px);
@@ -118,5 +110,47 @@
   .navbanner__then {
     min-width: 76px;
     padding: 10px;
+  }
+}
+
+@media (min-width: 721px) {
+  .navbanner {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(520px, calc(100% - 48px));
+    border-radius: 16px;
+  }
+
+  .navbanner__main {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .navbanner__glyph {
+    font-size: 34px;
+    min-width: 38px;
+  }
+
+  .navbanner__street {
+    font-size: 22px;
+    line-height: 1.05;
+  }
+
+  .navbanner__dist {
+    font-size: var(--step--1);
+  }
+
+  .navbanner__then {
+    min-width: 80px;
+    padding: 10px 12px;
+  }
+
+  .navbanner__then-label {
+    font-size: 16px;
+  }
+
+  .navbanner__then-glyph {
+    font-size: 22px;
   }
 }

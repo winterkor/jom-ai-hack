@@ -48,6 +48,30 @@ function buildClusterIcon(cluster) {
   });
 }
 
+// Red teardrop pin marking the destination rack during nav. Sits above
+// cluster markers so the maintainer can see exactly where they're heading
+// even when neighboring racks visually crowd the target.
+function DestinationMarker({ rack }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !rack) return;
+    const icon = L.divIcon({
+      className: "admin-dest-wrap",
+      iconSize: [36, 46],
+      iconAnchor: [18, 44],
+      html: '<div class="admin-dest"><div class="admin-dest__pin"></div></div>',
+    });
+    const marker = L.marker([rack.lat, rack.lng], {
+      icon,
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 2000,
+    }).addTo(map);
+    return () => { map.removeLayer(marker); };
+  }, [map, rack?.lat, rack?.lng]);
+  return null;
+}
+
 // "You are here" pin for the admin. Pulsing blue dot styled in AdminMap.css.
 function AdminSelfMarker({ location }) {
   const map = useMap();
@@ -108,7 +132,7 @@ function RackLayer({ racks }) {
 // Fixed view of the Tampines core. We deliberately skip "fit to all racks"
 // because the live LTA dataset spans Bedok → Loyang → Changi, which produces
 // a viewport with a lot of empty space outside the dense Tampines cluster.
-const TAMPINES_FOCUS = { center: [1.345, 103.952], zoom: 16 };
+const TAMPINES_FOCUS = { center: [1.345, 103.952], zoom: 14.5 };
 
 function FixedFocus({ suppressed }) {
   const map = useMap();
@@ -145,10 +169,10 @@ function InvalidateOnNav({ active }) {
   return null;
 }
 
-export default function AdminMap({ racks, routeCoords, adminLocation }) {
+export default function AdminMap({ racks, routeCoords, adminLocation, destinationRack }) {
   const isRouting = Boolean(routeCoords && routeCoords.length >= 2);
   return (
-    <div className="admin-map">
+    <div className="admin-map" data-routing={isRouting ? "true" : "false"}>
       <MapContainer
         center={TAMPINES_CENTER}
         zoom={14}
@@ -168,6 +192,7 @@ export default function AdminMap({ racks, routeCoords, adminLocation }) {
         {adminLocation && <AdminSelfMarker location={adminLocation} />}
         <InvalidateOnNav active={isRouting} />
         {isRouting && <RouteLayer coords={routeCoords} />}
+        {isRouting && destinationRack && <DestinationMarker rack={destinationRack} />}
         {isRouting && <FitRoute coords={routeCoords} />}
       </MapContainer>
 

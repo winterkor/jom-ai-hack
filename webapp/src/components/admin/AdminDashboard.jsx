@@ -6,7 +6,6 @@ import AdminMap from "./AdminMap.jsx";
 import LiveFeed from "./LiveFeed.jsx";
 import IncidentModal from "./IncidentModal.jsx";
 import NavPreviewCard from "../NavPreviewCard.jsx";
-import NavBanner from "../NavBanner.jsx";
 import NavExitBar from "../NavExitBar.jsx";
 import { mockIncidents } from "../../data/mockIncidents.js";
 import { getCyclingRoute } from "../../services/routing.js";
@@ -33,20 +32,27 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
   const [navRoute, setNavRoute] = useState(null);
   const [navRack, setNavRack] = useState(null);
 
-  // Maintainer's "you are here" pin on the map. Same geolocation→depot logic
-  // as resolveOrigin, but resolved once on mount so the marker stays visible
-  // outside of nav mode too.
+  // Maintainer's "you are here" pin on the map. Starts at the Tampines Hub
+  // depot so the marker is visible even before geolocation resolves; we then
+  // watch for the real position and snap to it as soon as the browser hands
+  // it over. Errors are surfaced to the console so denied / timed-out perms
+  // don't silently leave the pin parked at the depot fallback.
   const [adminLocation, setAdminLocation] = useState(DEPOT);
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    const id = navigator.geolocation.getCurrentPosition(
-      (pos) => setAdminLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+    if (!navigator.geolocation) {
+      console.warn("[admin-location] geolocation unsupported; using depot");
+      return;
+    }
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setAdminLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      (err) => {
+        console.warn("[admin-location] geolocation failed:", err.code, err.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
-    return () => {
-      if (id) navigator.geolocation.clearWatch?.(id);
-    };
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   const rackIndex = useMemo(() => {
@@ -139,9 +145,6 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
   const isPreview = navState === "preview";
   const isActive = navState === "active";
 
-  const firstStep = navRoute?.steps?.[0];
-  const nextStep = navRoute?.steps?.[1];
-
   return (
     <div
       className="admin grain"
@@ -203,8 +206,8 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
             racks={racks}
             routeCoords={navRoute?.coords || null}
             adminLocation={adminLocation}
+            destinationRack={isPreview || isActive ? navRack : null}
           />
-          {isActive && <NavBanner step={firstStep} nextStep={nextStep} />}
           {isPreview && (
             <NavPreviewCard
               route={navRoute}

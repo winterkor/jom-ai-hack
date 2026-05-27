@@ -16,17 +16,6 @@
   animation: navprev-in var(--dur) var(--ease-out);
 }
 
-@media (min-width: 721px) {
-  .navprev {
-    left: auto;
-    right: 18px;
-    bottom: 18px;
-    width: min(430px, calc(100vw - 36px));
-    border: 2px solid rgba(31, 42, 68, 0.16);
-    border-radius: 28px;
-  }
-}
-
 @keyframes navprev-in {
   from {
     transform: translateY(24px);
@@ -224,5 +213,76 @@
   .navprev__secondary {
     min-height: 52px;
     font-size: var(--step-1);
+  }
+}
+
+@media (min-width: 721px) {
+  .navprev {
+    left: auto;
+    right: 18px;
+    bottom: 18px;
+    width: min(440px, calc(100% - 32px));
+    border: 2px solid rgba(31, 42, 68, 0.16);
+    border-radius: 24px;
+    padding: 12px 18px calc(16px + env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .navprev__handle {
+    display: none;
+  }
+
+  .navprev__title {
+    font-size: 26px;
+  }
+
+  .navprev__eyebrow {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .navprev__destination {
+    margin-top: 4px;
+    font-size: var(--step-0);
+  }
+
+  .navprev__cancel {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .navprev__body {
+    gap: 12px;
+  }
+
+  .navprev__numeral {
+    font-size: 46px;
+    min-width: 56px;
+  }
+
+  .navprev__unit {
+    font-size: var(--step-1);
+  }
+
+  .navprev__meta {
+    gap: 3px;
+    padding-top: 4px;
+  }
+
+  .navprev__arrive {
+    font-size: var(--step-1);
+  }
+
+  .navprev__dist,
+  .navprev__hint {
+    font-size: var(--step-0);
+  }
+
+  .navprev__start,
+  .navprev__secondary {
+    min-height: 46px;
+    font-size: var(--step-1);
+    padding: 0 22px;
   }
 }
