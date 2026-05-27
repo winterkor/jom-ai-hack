@@ -133,3 +133,24 @@
 .admin-map .leaflet-control-zoom a:hover {
   background: var(--admin-panel-2);
 }
+
+/* Clear-destination button (only visible when a flyTarget pin is dropped) */
+.admin-map__clear {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 600;
+  padding: 7px 12px;
+  background: var(--admin-panel);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-line);
+  border-radius: 8px;
+  font: 700 11px/1 var(--font-display);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.admin-map__clear:hover {
+  background: var(--admin-panel-2);
+}

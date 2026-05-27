@@ -124,9 +124,15 @@ function buildIncidents() {
   };
   for (const b of BASE) {
     push(`TPN-${b.rackKey}`, b); // mock rack id form
-    push(`TPN-0${b.rackKey}`, b); // live LTA-derived rack id form (TPN-001..)
+    push(`TPN-0${b.rackKey}`, b); // legacy LTA-derived rack id form (TPN-001..)
+    push(`lta-0${b.rackKey}`, b); // current LTA-derived rack id form (lta-001..)
   }
-  for (const b of LTA_ONLY) push(b.rackId, b);
+  for (const b of LTA_ONLY) {
+    push(b.rackId, b);
+    // Also push at lta-XXX so the live LTA source resolves these.
+    const num = b.rackId.split("-").pop();
+    if (num) push(`lta-${num}`, b);
+  }
   return items;
 }
 
@@ -165,4 +171,50 @@ export function timeAgo(iso) {
   const h = Math.round(m / 60);
   if (h < 24) return `${h}h ago`;
   return `${Math.round(h / 24)}d ago`;
+}
+
+// Deterministic string hash → small int. Same input always yields same output.
+function hashStr(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+
+// Same rack id → same photo (one rack = one scene). 5 photos available.
+export function pickIncidentPhoto(rackId) {
+  const idx = hashStr(String(rackId || "")) % 5;
+  return `/cv/post_processed${idx}.jpg`;
+}
+
+const BLURB_POOL = {
+  illegal_parking: [
+    "Bike obstructing walkway",
+    "Parked outside marked zone",
+    "Blocking ramp access",
+    "Leaned against pillar, not rack",
+    "Cluster near emergency exit",
+  ],
+  abandoned: [
+    "Stationary >72h",
+    "No engagement detected since last scan",
+    "Unclaimed bike — flagged for review",
+    "Same frame across daily scans",
+  ],
+  overflow: [
+    "Rack at 110% capacity",
+    "Spillover on adjacent path",
+    "5+ bikes outside designated slots",
+    "Sustained overflow during peak",
+  ],
+};
+
+// Same incident id → same blurb (no flicker across re-renders).
+export function pickIncidentBlurb(incidentId, type) {
+  const pool = BLURB_POOL[type] || [];
+  if (pool.length === 0) return "";
+  const idx = hashStr(String(incidentId || "")) % pool.length;
+  return pool[idx];
 }

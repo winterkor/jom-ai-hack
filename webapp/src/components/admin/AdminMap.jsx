@@ -89,17 +89,71 @@ function RackLayer({ racks }) {
   return null;
 }
 
-function FitBounds({ racks }) {
+function FitBounds({ racks, suppressed }) {
   const map = useMap();
   useEffect(() => {
+    if (suppressed) return;
     if (!map || racks.length === 0) return;
     const bounds = L.latLngBounds(racks.map((r) => [r.lat, r.lng]));
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
-  }, [map, racks]);
+  }, [map, racks, suppressed]);
   return null;
 }
 
-export default function AdminMap({ racks }) {
+function buildDestIcon(rack) {
+  const tail = (rack.id || "").split("-").pop() || "";
+  const displayCode = tail.length > 2 ? tail.slice(-2) : tail;
+  return L.divIcon({
+    className: "myrack-pin-wrap",
+    iconSize: [44, 58],
+    iconAnchor: [22, 56],
+    html: `
+      <div class="myrack-pin myrack-pin--dest">
+        <div class="myrack-pin__shadow"></div>
+        <div class="myrack-pin__body">
+          <div class="myrack-pin__code">${displayCode}</div>
+        </div>
+      </div>
+    `,
+  });
+}
+
+// Fly to the target rack and drop a destination teardrop pin. The nonce on
+// flyTarget makes "navigate to the same rack twice" repeat the animation.
+function FlyToTarget({ flyTarget }) {
+  const map = useMap();
+  const markerRef = useRef(null);
+
+  useEffect(() => {
+    if (!map) return;
+    // Always clear previous pin before placing the new one.
+    if (markerRef.current) {
+      map.removeLayer(markerRef.current);
+      markerRef.current = null;
+    }
+    if (!flyTarget?.rack) return;
+    const { rack } = flyTarget;
+    map.flyTo([rack.lat, rack.lng], 17, { duration: 1.1 });
+    const marker = L.marker([rack.lat, rack.lng], {
+      icon: buildDestIcon(rack),
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 1000,
+    });
+    marker.addTo(map);
+    markerRef.current = marker;
+    return () => {
+      if (markerRef.current) {
+        map.removeLayer(markerRef.current);
+        markerRef.current = null;
+      }
+    };
+  }, [map, flyTarget]);
+
+  return null;
+}
+
+export default function AdminMap({ racks, flyTarget, onClearFlyTarget }) {
   return (
     <div className="admin-map">
       <MapContainer
@@ -116,9 +170,21 @@ export default function AdminMap({ racks }) {
           maxZoom={19}
         />
         <ZoomControl position="bottomright" />
-        <FitBounds racks={racks} />
+        <FitBounds racks={racks} suppressed={Boolean(flyTarget)} />
         <RackLayer racks={racks} />
+        <FlyToTarget flyTarget={flyTarget} />
       </MapContainer>
+
+      {flyTarget?.rack && (
+        <button
+          type="button"
+          className="admin-map__clear"
+          onClick={onClearFlyTarget}
+          title="Clear destination"
+        >
+          ✕ Clear pin
+        </button>
+      )}
 
       <div className="admin-map__legend">
         <span className="legend-item">

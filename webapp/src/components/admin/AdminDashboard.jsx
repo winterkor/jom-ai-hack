@@ -18,6 +18,10 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
   const [incidents, setIncidents] = useState(mockIncidents);
   const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState("incidents");
+  // Rack the admin asked to navigate to (from an incident). Drives map fly-to
+  // + a destination teardrop pin. Bumping `nonce` re-triggers fly even if the
+  // same rack is selected twice.
+  const [flyTarget, setFlyTarget] = useState(null);
 
   const rackIndex = useMemo(() => {
     const m = new Map();
@@ -58,6 +62,15 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
   // the Incidents tab — selecting from another tab still opens the modal.
   const handleSelectIncident = (id) => {
     setSelectedId(id);
+  };
+
+  const handleNavigate = () => {
+    if (!selected) return;
+    const rack = rackIndex.get(selected.rackId);
+    if (!rack) return;
+    setFlyTarget({ rack, nonce: Date.now() });
+    setActiveTab("map");
+    setSelectedId(null);
   };
 
   return (
@@ -117,7 +130,11 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
             activeTab === "map" ? " is-active" : ""
           }`}
         >
-          <AdminMap racks={racks} />
+          <AdminMap
+            racks={racks}
+            flyTarget={flyTarget}
+            onClearFlyTarget={() => setFlyTarget(null)}
+          />
         </main>
 
         <aside
@@ -164,6 +181,7 @@ export default function AdminDashboard({ racks, dataState, onExit, onHome }) {
           rack={rackIndex.get(selected.rackId) || null}
           onClose={() => setSelectedId(null)}
           onResolve={() => resolveIncident(selected.id)}
+          onNavigate={handleNavigate}
         />
       )}
     </div>

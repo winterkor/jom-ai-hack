@@ -216,6 +216,17 @@
   transform: translateY(-1px);
 }
 
+.imodal__btn--nav {
+  background: #1f6feb;
+  color: #fff;
+  border-color: #1f6feb;
+}
+
+.imodal__btn--nav:hover {
+  background: #155bcc;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 720px) {
   .imodal {
     place-items: end stretch;

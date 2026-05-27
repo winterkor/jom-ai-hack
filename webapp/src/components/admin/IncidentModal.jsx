@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import {
   INCIDENT_TYPES,
   SEVERITY,
+  pickIncidentPhoto,
   timeAgo,
 } from "../../data/mockIncidents.js";
 import "./IncidentModal.css";
@@ -17,7 +18,7 @@ function formatStamp(iso) {
   return `${date} · ${time} SGT`;
 }
 
-export default function IncidentModal({ incident, rack, onClose, onResolve }) {
+export default function IncidentModal({ incident, rack, onClose, onResolve, onNavigate }) {
   // Lock body scroll while open.
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -29,6 +30,11 @@ export default function IncidentModal({ incident, rack, onClose, onResolve }) {
   const type = INCIDENT_TYPES[incident.type];
   const sev = SEVERITY[incident.severity];
   const hasReference = Boolean(incident.referenceUrl);
+  // For non-abandoned incidents we deterministically pick a CV photo per rack
+  // (same rack always shows the same scene). Abandoned keeps its Day1/Day2 cmp.
+  const detectionSrc = hasReference
+    ? incident.imageUrl
+    : pickIncidentPhoto(incident.rackId);
 
   return (
     <div className="imodal" role="dialog" aria-modal="true" onClick={onClose}>
@@ -68,7 +74,7 @@ export default function IncidentModal({ incident, rack, onClose, onResolve }) {
               </figure>
             )}
             <figure className="imodal__figure">
-              <img src={incident.imageUrl} alt="CCTV detection" />
+              <img src={detectionSrc} alt="CCTV detection" />
               <figcaption>
                 {hasReference ? "Detection · Day 2" : "CCTV detection"}
               </figcaption>
@@ -112,6 +118,15 @@ export default function IncidentModal({ incident, rack, onClose, onResolve }) {
             >
               Dismiss
             </button>
+            {rack && onNavigate && (
+              <button
+                type="button"
+                className="imodal__btn imodal__btn--nav"
+                onClick={onNavigate}
+              >
+                ➜ Navigate
+              </button>
+            )}
             <button
               type="button"
               className="imodal__btn imodal__btn--primary"
