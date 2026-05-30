@@ -134,12 +134,18 @@ function RackLayer({ racks }) {
 // a viewport with a lot of empty space outside the dense Tampines cluster.
 const TAMPINES_FOCUS = { center: [1.345, 103.952], zoom: 14.5 };
 
-function FixedFocus({ suppressed }) {
+// Initial view centers on the admin's own location (the pulsing blue dot) when
+// we have it, so "you are here" sits in the middle of the map rather than at the
+// top edge. Falls back to the Tampines core when location isn't available yet.
+function FixedFocus({ suppressed, adminLocation }) {
   const map = useMap();
   useEffect(() => {
     if (suppressed || !map) return;
-    map.setView(TAMPINES_FOCUS.center, TAMPINES_FOCUS.zoom, { animate: false });
-  }, [map, suppressed]);
+    const center = adminLocation
+      ? [adminLocation.lat, adminLocation.lng]
+      : TAMPINES_FOCUS.center;
+    map.setView(center, TAMPINES_FOCUS.zoom, { animate: false });
+  }, [map, suppressed, adminLocation?.lat, adminLocation?.lng]);
   return null;
 }
 
@@ -187,7 +193,7 @@ export default function AdminMap({ racks, routeCoords, adminLocation, destinatio
           subdomains="abcd"
           maxZoom={19}
         />
-        <FixedFocus suppressed={isRouting} />
+        <FixedFocus suppressed={isRouting} adminLocation={adminLocation} />
         <RackLayer racks={racks} />
         {adminLocation && <AdminSelfMarker location={adminLocation} />}
         <InvalidateOnNav active={isRouting} />
