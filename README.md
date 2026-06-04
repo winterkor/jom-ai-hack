@@ -2,7 +2,7 @@
 
 Live availability map for Tampines bike racks, with a rider app for finding a free rack and a maintainer console for triaging illegal and abandoned-bike incidents. Built for the Jom AI @ Tampines hackathon.
 
-This repository is the **webapp / client** of a larger proposed system (see [Architecture](#architecture)). The backend, database, and ESP32/CV hardware are part of the proposal but are not included here.
+This repository is the **webapp / client** of a larger system (see [Architecture](#architecture)). The ESP32 smart racks and the computer-vision detection are built and maintained separately; the backend and database integration is a future plan. None of those are included in this repo.
 
 ## The problem
 
@@ -34,11 +34,11 @@ Incident detail, with the CCTV detection that raised it:
 
 ## Architecture
 
-The proposed system spans hardware, a backend, and this client. Map tiles come from OpenStreetMap and routes from OSRM. Smart racks (ESP32) and computer-vision cameras (NVIDIA Jetson) report over MQTT (HiveMQ) to a FastAPI + PostgreSQL backend, which pulls reference data from LTA DataMall and OneMapSG and serves the client.
+The full system spans hardware, a backend, and this client. Map tiles come from OpenStreetMap and routes from OSRM. Smart racks (ESP32) and computer-vision cameras (NVIDIA Jetson) report over MQTT (HiveMQ) to a FastAPI + PostgreSQL backend, which pulls reference data from LTA DataMall and OneMapSG and serves the client.
 
-![Proposed system architecture](docs/architecture.png)
+![System architecture](docs/architecture.png)
 
-Only the Webapp/Client box is implemented in this repository. The webapp talks directly to LTA DataMall and OSRM (proxied through Vite) and connects to a HiveMQ broker for lock state, so it runs on its own without the backend or hardware.
+This repository holds the Webapp/Client box. The webapp talks directly to LTA DataMall and OSRM (proxied through Vite) and connects to the HiveMQ broker for live lock state, so it runs on its own. The ESP32 racks and computer-vision detection are built separately; wiring the client to the FastAPI + PostgreSQL backend is a future plan.
 
 ### Webapp stack
 
@@ -123,10 +123,10 @@ Maintainer console:
 | Local occupancy simulation | Done |
 | Maintainer console (incidents, occupancy, nav) | Done |
 | MQTT lock/unlock sessions | Done |
-| Geofencing overflow zones | In progress |
-| ESP32 smart racks (ultrasonic, LED, stepper, RFID) | Planned (hardware) |
-| Computer-vision illegal-parking detection (Jetson + RF-DETR) | Planned (backend) |
-| FastAPI + PostgreSQL backend integration | Planned (backend) |
+| ESP32 smart racks (ultrasonic, LED, stepper, RFID) | Done |
+| Computer-vision illegal-parking detection (Jetson + RF-DETR) | Done |
+| Geofencing overflow zones | Future plan |
+| FastAPI + PostgreSQL backend integration | Future plan |
 
 ## Project structure
 
