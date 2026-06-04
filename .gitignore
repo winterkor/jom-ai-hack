@@ -31,5 +31,10 @@ coverage/
 firmware/build/
 firmware/.pio/
 
+# Firmware sketch kept out of this repo (contains device credentials)
+Tamphackathon.ino
+firmware/secrets.h
+*.ino.secrets
+
 # Misc
 *.tsbuildinfo
